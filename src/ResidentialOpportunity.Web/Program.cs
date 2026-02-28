@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using MudBlazor.Services;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Application.Validators;
 using ResidentialOpportunity.Infrastructure;
@@ -11,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// MudBlazor
+builder.Services.AddMudServices();
 
 // API controllers with XML + JSON support
 builder.Services.AddControllers()

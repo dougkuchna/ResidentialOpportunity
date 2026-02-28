@@ -6,56 +6,67 @@
 
 <PageTitle>Find HVAC Providers</PageTitle>
 
-<h1>Find Local HVAC Providers</h1>
-<p>Enter your ZIP code to find qualified HVAC service providers in your area.</p>
+<MudText Typo="Typo.h4" GutterBottom="true">Find Local HVAC Providers</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">Enter your ZIP code to find qualified HVAC service providers in your area.</MudText>
 
-<div class="search-section">
-    <div class="search-bar">
-        <input type="text" @bind="_zipCode" @bind:event="oninput" @onkeydown="HandleKeyDown"
-               class="form-control" placeholder="Enter ZIP code (e.g. 62704)" maxlength="5" />
-        <button class="btn btn-primary" @onclick="SearchProviders" disabled="@_isSearching">
-            @if (_isSearching) { <span>Searching...</span> } else { <span>Search</span> }
-        </button>
-    </div>
-</div>
+<MudGrid Class="mb-4">
+    <MudItem xs="12" sm="6" md="4">
+        <MudTextField @bind-Value="_zipCode" Label="ZIP Code" Variant="Variant.Outlined" MaxLength="5"
+                      Placeholder="e.g. 62704" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search"
+                      OnAdornmentClick="SearchProviders" OnKeyDown="HandleKeyDown" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="2" Class="d-flex align-end">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SearchProviders"
+                   Disabled="_isSearching" StartIcon="@Icons.Material.Filled.Search">
+            @(_isSearching ? "Searching..." : "Search")
+        </MudButton>
+    </MudItem>
+</MudGrid>
 
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="alert alert-danger">@_errorMessage</div>
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
 }
 
 @if (_hasSearched && _providers is not null)
 {
     @if (_providers.Count == 0)
     {
-        <div class="alert alert-info">
-            No providers found for ZIP code <strong>@_lastSearchedZip</strong>.
-            Try a nearby ZIP code or <a href="/submit-request">submit a request</a> and we'll help match you.
-        </div>
+        <MudAlert Severity="Severity.Info" Class="mb-4">
+            No providers found for ZIP code <b>@_lastSearchedZip</b>.
+            Try a nearby ZIP code or <MudLink Href="/submit-request">submit a request</MudLink>.
+        </MudAlert>
     }
     else
     {
-        <h2>@_providers.Count Provider(s) near @_lastSearchedZip</h2>
-        <div class="provider-grid">
+        <MudText Typo="Typo.h6" Class="mb-3">@_providers.Count Provider(s) near @_lastSearchedZip</MudText>
+        <MudGrid>
             @foreach (var provider in _providers)
             {
-                <div class="provider-card">
-                    <h3>@provider.CompanyName</h3>
-                    <div class="provider-details">
-                        <p><strong>Phone:</strong> @provider.Phone</p>
-                        <p><strong>Email:</strong> <a href="mailto:@provider.Email">@provider.Email</a></p>
-                        @if (!string.IsNullOrEmpty(provider.Website))
-                        {
-                            <p><strong>Website:</strong> <a href="@provider.Website" target="_blank">@provider.Website</a></p>
-                        }
-                    </div>
-                    @if (!string.IsNullOrEmpty(provider.Description))
-                    {
-                        <p class="provider-description">@provider.Description</p>
-                    }
-                </div>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@provider.CompanyName</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@provider.City, @provider.State</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText><MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1" />@provider.Phone</MudText>
+                            <MudText><MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1" /><MudLink Href="@($"mailto:{provider.Email}")">@provider.Email</MudLink></MudText>
+                            @if (!string.IsNullOrEmpty(provider.Website))
+                            {
+                                <MudText><MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Small" Class="mr-1" /><MudLink Href="@provider.Website" Target="_blank">@provider.Website</MudLink></MudText>
+                            }
+                            @if (!string.IsNullOrEmpty(provider.Description))
+                            {
+                                <MudText Typo="Typo.body2" Class="mt-2">@provider.Description</MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
             }
-        </div>
+        </MudGrid>
     }
 }
 

@@ -13,55 +13,53 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Create an Account</h1>
-<p>Register to track your service requests and manage your profile.</p>
+<MudText Typo="Typo.h4" GutterBottom="true">Create an Account</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">Register to track your service requests and manage your profile.</MudText>
 
 @if (_errors.Count > 0)
 {
-    <div class="alert alert-danger">
+    <MudAlert Severity="Severity.Error" Class="mb-4">
         <ul>
             @foreach (var error in _errors)
             {
                 <li>@error</li>
             }
         </ul>
-    </div>
+    </MudAlert>
 }
 
-<form method="post" @formname="RegisterForm" @onsubmit="HandleRegister">
-    <AntiforgeryToken />
+<MudPaper Class="pa-4" MaxWidth="500px" Elevation="1">
+    <form method="post" @formname="RegisterForm" @onsubmit="HandleRegister">
+        <AntiforgeryToken />
 
-    <fieldset>
-        <legend>Account Credentials</legend>
-        <div class="form-group">
-            <label for="email">Email</label>
+        <MudText Typo="Typo.h6" GutterBottom="true">Account Credentials</MudText>
+        <div class="form-group mb-3">
+            <label for="email" class="d-block mb-1"><b>Email</b></label>
             <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
+        <div class="form-group mb-3">
+            <label for="password" class="d-block mb-1"><b>Password</b></label>
             <input id="password" type="password" name="Password" class="form-control" required />
         </div>
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
+        <div class="form-group mb-4">
+            <label for="confirmPassword" class="d-block mb-1"><b>Confirm Password</b></label>
             <input id="confirmPassword" type="password" name="ConfirmPassword" class="form-control" required />
         </div>
-    </fieldset>
 
-    <fieldset>
-        <legend>Contact Information</legend>
-        <div class="form-group">
-            <label for="name">Full Name</label>
+        <MudText Typo="Typo.h6" GutterBottom="true">Contact Information</MudText>
+        <div class="form-group mb-3">
+            <label for="name" class="d-block mb-1"><b>Full Name</b></label>
             <input id="name" type="text" name="Name" class="form-control" value="@_name" required />
         </div>
-        <div class="form-group">
-            <label for="phone">Phone</label>
+        <div class="form-group mb-4">
+            <label for="phone" class="d-block mb-1"><b>Phone</b></label>
             <input id="phone" type="tel" name="Phone" class="form-control" value="@_phone" required />
         </div>
-    </fieldset>
 
-    <button type="submit" class="btn btn-primary">Register</button>
-    <p style="margin-top: 1rem;">Already have an account? <a href="/account/login">Login</a></p>
-</form>
+        <button type="submit" class="btn btn-primary">Register</button>
+        <MudText Class="mt-3">Already have an account? <MudLink Href="/account/login">Login</MudLink></MudText>
+    </form>
+</MudPaper>
 
 @code {
     [SupplyParameterFromForm] private string? Email { get; set; }

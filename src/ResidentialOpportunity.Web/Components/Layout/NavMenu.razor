@@ -1,32 +1,16 @@
-<div class="nav-menu">
-    <nav>
-        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-            <span>Home</span>
-        </NavLink>
-        <NavLink class="nav-link" href="submit-request">
-            <span>Submit Request</span>
-        </NavLink>
-        <NavLink class="nav-link" href="find-providers">
-            <span>Find Providers</span>
-        </NavLink>
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+    <MudNavLink Href="/submit-request" Icon="@Icons.Material.Filled.Build">Submit Request</MudNavLink>
+    <MudNavLink Href="/find-providers" Icon="@Icons.Material.Filled.Search">Find Providers</MudNavLink>
 
-        <AuthorizeView>
-            <Authorized>
-                <NavLink class="nav-link" href="my-requests">
-                    <span>My Requests</span>
-                </NavLink>
-                <NavLink class="nav-link" href="account/logout">
-                    <span>Sign Out</span>
-                </NavLink>
-            </Authorized>
-            <NotAuthorized>
-                <NavLink class="nav-link" href="account/login">
-                    <span>Login</span>
-                </NavLink>
-                <NavLink class="nav-link" href="account/register">
-                    <span>Register</span>
-                </NavLink>
-            </NotAuthorized>
-        </AuthorizeView>
-    </nav>
-</div>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/my-requests" Icon="@Icons.Material.Filled.List">My Requests</MudNavLink>
+            <MudNavLink Href="/account/logout" Icon="@Icons.Material.Filled.Logout">Sign Out</MudNavLink>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="/account/login" Icon="@Icons.Material.Filled.Login">Login</MudNavLink>
+            <MudNavLink Href="/account/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>

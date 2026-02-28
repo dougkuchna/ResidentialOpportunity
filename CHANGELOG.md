@@ -2,6 +2,23 @@
 
 All notable changes to the ResidentialOpportunity project are documented here.
 
+## [0.7.0] - 2026-02-28
+
+### MudBlazor UI Integration
+- Installed MudBlazor 9.0.0 NuGet package
+- Configured MudServices, MudThemeProvider (primary #1a3a5c, secondary #2980b9), MudPopoverProvider, MudDialogProvider, MudSnackbarProvider
+- Rewrote MainLayout.razor with MudLayout, MudAppBar, MudDrawer (Mini variant with OpenMiniOnHover), MudMainContent
+- Rewrote NavMenu.razor with MudNavMenu and MudNavLink (Material icons)
+- Rewrote Home.razor with MudPaper, MudGrid, MudCard, MudButton, MudList
+- Rewrote SubmitRequest.razor markup with MudTextField, MudSelect, MudGrid, MudPaper, MudAlert, MudButton
+- Rewrote FindProviders.razor with MudTextField (search adornment), MudCard grid, MudAlert
+- Rewrote RequestConfirmation.razor with MudAlert, MudSimpleTable, MudChip, MudCard, MudButton
+- Rewrote MyRequests.razor with MudCard, MudChip, MudProgressCircular, MudButton
+- Updated Register/Login/Logout pages with MudPaper/MudText/MudAlert wrappers (native HTML forms preserved for static SSR)
+- Cleaned up app.css: removed 400+ lines of custom styles replaced by MudBlazor, kept only Blazor framework and auth form styles
+- Replaced MainLayout.razor.css and NavMenu.razor.css scoped styles (MudBlazor handles layout/nav)
+- Added Roboto font and MudBlazor CSS/JS to App.razor
+
 ## [0.6.0] - 2026-02-28
 
 ### Phase 6: Authentication & Account Management

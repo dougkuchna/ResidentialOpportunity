@@ -2,29 +2,65 @@
 
 <PageTitle>HVAC Service Portal - Home</PageTitle>
 
-<h1>Residential HVAC Service Portal</h1>
-<p class="lead">Having trouble with your heating or cooling system? We connect you with trusted local HVAC providers who can help.</p>
+<MudText Typo="Typo.h3" GutterBottom="true">Residential HVAC Service Portal</MudText>
+<MudText Typo="Typo.subtitle1" Class="mb-6">
+    Having trouble with your heating or cooling system? We connect you with trusted local HVAC providers who can help.
+</MudText>
 
-<div class="home-actions">
-    <div class="action-card">
-        <h3>🔧 Submit a Service Request</h3>
-        <p>Describe your HVAC issue and we'll match you with local providers in your area.</p>
-        <a href="submit-request" class="btn btn-primary">Submit Request</a>
-    </div>
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Build" Class="mr-2" />Submit a Service Request
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>Describe your HVAC issue and we'll match you with local providers in your area.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/submit-request"
+                           StartIcon="@Icons.Material.Filled.Send">Submit Request</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
 
-    <div class="action-card">
-        <h3>📍 Find Local Providers</h3>
-        <p>Search by ZIP code to find HVAC service providers near you.</p>
-        <a href="find-providers" class="btn btn-secondary">Find Providers</a>
-    </div>
-</div>
+    <MudItem xs="12" sm="6">
+        <MudCard Elevation="2">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.Search" Class="mr-2" />Find Local Providers
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>Search by ZIP code to find HVAC service providers near you.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/find-providers"
+                           StartIcon="@Icons.Material.Filled.LocationOn">Find Providers</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
 
-<section class="info-section">
-    <h2>Common HVAC Issues We Help With</h2>
-    <ul>
-        <li><strong>Heating</strong> &mdash; Furnace won't ignite, uneven heating, strange noises</li>
-        <li><strong>Cooling</strong> &mdash; AC not cooling, refrigerant leaks, frozen coils</li>
-        <li><strong>Ventilation</strong> &mdash; Poor airflow, duct cleaning, air quality concerns</li>
-        <li><strong>Emergency</strong> &mdash; Complete system failures, gas leaks, no heat in winter</li>
-    </ul>
-</section>
+<MudPaper Class="pa-4 mt-6" Elevation="1">
+    <MudText Typo="Typo.h5" GutterBottom="true">Common HVAC Issues We Help With</MudText>
+    <MudList T="string">
+        <MudListItem Icon="@Icons.Material.Filled.Whatshot">
+            <b>Heating</b> — Furnace won't ignite, uneven heating, strange noises
+        </MudListItem>
+        <MudListItem Icon="@Icons.Material.Filled.AcUnit">
+            <b>Cooling</b> — AC not cooling, refrigerant leaks, frozen coils
+        </MudListItem>
+        <MudListItem Icon="@Icons.Material.Filled.Air">
+            <b>Ventilation</b> — Poor airflow, duct cleaning, air quality concerns
+        </MudListItem>
+        <MudListItem Icon="@Icons.Material.Filled.Warning">
+            <b>Emergency</b> — Complete system failures, gas leaks, no heat in winter
+        </MudListItem>
+    </MudList>
+</MudPaper>

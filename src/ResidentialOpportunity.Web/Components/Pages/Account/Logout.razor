@@ -18,12 +18,16 @@
 
 <PageTitle>Logout</PageTitle>
 
-<h1>Sign Out</h1>
-<p>Are you sure you want to sign out?</p>
+<MudText Typo="Typo.h4" GutterBottom="true">Sign Out</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">Are you sure you want to sign out?</MudText>
 
-<form method="post" @formname="LogoutForm">
-    <AntiforgeryToken />
-    <input type="hidden" name="Confirm" value="true" />
-    <button type="submit" class="btn btn-secondary">Sign Out</button>
-    <a href="/" class="btn btn-outline" style="margin-left: 0.5rem;">Cancel</a>
-</form>
+<MudPaper Class="pa-4" MaxWidth="400px" Elevation="1">
+    <form method="post" @formname="LogoutForm">
+        <AntiforgeryToken />
+        <input type="hidden" name="Confirm" value="true" />
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-secondary">Sign Out</button>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/">Cancel</MudButton>
+        </div>
+    </form>
+</MudPaper>

@@ -50,7 +50,7 @@ ResidentialOpportunity/
 - **Pages**: Home, SubmitRequest (with EditForm + file upload), FindProviders (ZIP search), RequestConfirmation, MyRequests (authenticated)
 - **Auth Pages**: Register, Login, Logout (static SSR for cookie auth compatibility)
 - **API Controllers**: `ServiceRequestsController`, `ProvidersController` with JSON/XML content negotiation
-- **Layout**: Auth-aware sidebar navigation with `AuthorizeView`
+- **Layout**: MudBlazor `MudLayout` with `MudAppBar`, `MudDrawer` (mini variant), auth-aware `MudNavMenu` with `AuthorizeView`
 - **Program.cs**: DI registration, Identity, XML/JSON formatters, Swagger, database seeding
 
 ## Tech Stack
@@ -59,6 +59,7 @@ ResidentialOpportunity/
 |---|---|
 | Framework | .NET 10 / ASP.NET Core 10 |
 | UI | Blazor Server (Interactive Server rendering) |
+| UI Components | MudBlazor 9.0.0 (Material Design) |
 | ORM | Entity Framework Core 10 |
 | Database | SQL Server (LocalDB for development) |
 | Validation | FluentValidation 12.1.1 |
@@ -115,7 +116,7 @@ On first run, `SeedData.InitializeAsync()` populates the database with sample HV
 - **Phase 1**: Project scaffolding — Solution structure, 4 source projects, 3 test projects, project references
 - **Phase 2**: Application layer — Interfaces, DTOs, services, FluentValidation validator, mapping extensions
 - **Phase 3**: Infrastructure layer — EF Core DbContext, entity configurations, repositories, seed data
-- **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with styling
+- **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with MudBlazor components
 - **Phase 5**: API Controllers — `ServiceRequestsController` (POST/GET JSON/XML), `ProvidersController` (GET by ZIP), content negotiation, RFC 7807 error responses
 - **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login/Logout pages, MyRequests page, anonymous-to-authenticated request claiming, auth-aware NavMenu and SubmitRequest
 - **Phase 8**: Testing — 86 tests across domain, application, and infrastructure layers

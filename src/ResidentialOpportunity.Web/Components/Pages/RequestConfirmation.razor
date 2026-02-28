@@ -9,75 +9,78 @@
 
 @if (_isLoading)
 {
-    <p>Loading confirmation...</p>
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <MudText Class="mt-2">Loading confirmation...</MudText>
 }
 else if (_request is null)
 {
-    <div class="alert alert-danger">
-        <h2>Request Not Found</h2>
-        <p>We couldn't find a service request with that ID. <a href="/submit-request">Submit a new request</a>.</p>
-    </div>
+    <MudAlert Severity="Severity.Error">
+        <MudText Typo="Typo.h6">Request Not Found</MudText>
+        <MudText>We couldn't find a service request with that ID. <MudLink Href="/submit-request">Submit a new request</MudLink>.</MudText>
+    </MudAlert>
 }
 else
 {
-    <div class="confirmation-header">
-        <h1>✅ Request Submitted Successfully</h1>
-        <p class="confirmation-id">Reference: <strong>@_request.Id</strong></p>
-    </div>
+    <MudAlert Severity="Severity.Success" Class="mb-4" Icon="@Icons.Material.Filled.CheckCircle">
+        <MudText Typo="Typo.h5">Request Submitted Successfully</MudText>
+        <MudText Typo="Typo.body2">Reference: <b>@_request.Id</b></MudText>
+    </MudAlert>
 
-    <div class="confirmation-summary">
-        <h2>Request Summary</h2>
-        <dl>
-            <dt>Name</dt>
-            <dd>@_request.Name</dd>
-            <dt>Email</dt>
-            <dd>@_request.Email</dd>
-            <dt>Phone</dt>
-            <dd>@_request.Phone</dd>
-            <dt>Address</dt>
-            <dd>@_request.Street, @_request.City, @_request.State @_request.ZipCode</dd>
-            <dt>Category</dt>
-            <dd>@_request.IssueCategory</dd>
-            <dt>Urgency</dt>
-            <dd>@_request.UrgencyLevel</dd>
-            <dt>Description</dt>
-            <dd>@_request.IssueDescription</dd>
-            <dt>Status</dt>
-            <dd><span class="status-badge">@_request.Status</span></dd>
-        </dl>
-    </div>
+    <MudPaper Class="pa-4 mb-4" Elevation="1">
+        <MudText Typo="Typo.h6" GutterBottom="true">Request Summary</MudText>
+        <MudSimpleTable Dense="true" Bordered="true">
+            <tbody>
+                <tr><td><b>Name</b></td><td>@_request.Name</td></tr>
+                <tr><td><b>Email</b></td><td>@_request.Email</td></tr>
+                <tr><td><b>Phone</b></td><td>@_request.Phone</td></tr>
+                <tr><td><b>Address</b></td><td>@_request.Street, @_request.City, @_request.State @_request.ZipCode</td></tr>
+                <tr><td><b>Category</b></td><td>@_request.IssueCategory</td></tr>
+                <tr><td><b>Urgency</b></td><td>@_request.UrgencyLevel</td></tr>
+                <tr><td><b>Description</b></td><td>@_request.IssueDescription</td></tr>
+                <tr><td><b>Status</b></td><td><MudChip T="string" Color="Color.Success" Size="Size.Small">@_request.Status</MudChip></td></tr>
+            </tbody>
+        </MudSimpleTable>
+    </MudPaper>
 
     @if (_providers is not null && _providers.Count > 0)
     {
-        <div class="matched-providers">
-            <h2>Matched Providers in Your Area</h2>
-            <p>The following providers service your ZIP code (<strong>@_request.ZipCode</strong>):</p>
-            <div class="provider-grid">
-                @foreach (var provider in _providers)
-                {
-                    <div class="provider-card">
-                        <h3>@provider.CompanyName</h3>
-                        <p><strong>Phone:</strong> @provider.Phone</p>
-                        <p><strong>Email:</strong> <a href="mailto:@provider.Email">@provider.Email</a></p>
-                        @if (!string.IsNullOrEmpty(provider.Website))
-                        {
-                            <p><strong>Website:</strong> <a href="@provider.Website" target="_blank">@provider.Website</a></p>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
+        <MudText Typo="Typo.h6" GutterBottom="true">Matched Providers in Your Area</MudText>
+        <MudText Class="mb-3">The following providers service ZIP code <b>@_request.ZipCode</b>:</MudText>
+        <MudGrid>
+            @foreach (var provider in _providers)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudCard Elevation="2">
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">@provider.CompanyName</MudText>
+                            </CardHeaderContent>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudText><MudIcon Icon="@Icons.Material.Filled.Phone" Size="Size.Small" Class="mr-1" />@provider.Phone</MudText>
+                            <MudText><MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Small" Class="mr-1" /><MudLink Href="@($"mailto:{provider.Email}")">@provider.Email</MudLink></MudText>
+                            @if (!string.IsNullOrEmpty(provider.Website))
+                            {
+                                <MudText><MudIcon Icon="@Icons.Material.Filled.Language" Size="Size.Small" Class="mr-1" /><MudLink Href="@provider.Website" Target="_blank">@provider.Website</MudLink></MudText>
+                            }
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
     }
     else
     {
-        <div class="alert alert-info">
+        <MudAlert Severity="Severity.Info" Class="mt-4">
             No providers currently listed for your area. We'll follow up once a match is found.
-        </div>
+        </MudAlert>
     }
 
-    <div class="confirmation-actions">
-        <a href="/submit-request" class="btn btn-secondary">Submit Another Request</a>
-        <a href="/find-providers" class="btn btn-outline">Browse All Providers</a>
+    <div class="d-flex gap-3 mt-4">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="/submit-request"
+                   StartIcon="@Icons.Material.Filled.Add">Submit Another Request</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/find-providers"
+                   StartIcon="@Icons.Material.Filled.Search">Browse All Providers</MudButton>
     </div>
 }
 

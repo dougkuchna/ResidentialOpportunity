@@ -11,40 +11,50 @@
 
 <PageTitle>My Requests</PageTitle>
 
-<h1>My Service Requests</h1>
+<MudText Typo="Typo.h4" GutterBottom="true">My Service Requests</MudText>
 
 @if (_isLoading)
 {
-    <p>Loading your requests...</p>
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+    <MudText Class="mt-2">Loading your requests...</MudText>
 }
 else if (_requests is null || _requests.Count == 0)
 {
-    <div class="alert alert-info">
+    <MudAlert Severity="Severity.Info">
         You haven't submitted any service requests yet.
-        <a href="/submit-request">Submit your first request</a>.
-    </div>
+        <MudLink Href="/submit-request">Submit your first request</MudLink>.
+    </MudAlert>
 }
 else
 {
-    <p>You have <strong>@_requests.Count</strong> service request(s).</p>
+    <MudText Class="mb-3">You have <b>@_requests.Count</b> service request(s).</MudText>
 
-    <div class="requests-list">
-        @foreach (var request in _requests)
-        {
-            <div class="request-card">
-                <div class="request-header">
-                    <h3>@request.IssueCategory — @request.UrgencyLevel</h3>
-                    <span class="status-badge">@request.Status</span>
-                </div>
-                <p class="request-description">@request.IssueDescription</p>
-                <div class="request-meta">
-                    <span><strong>Address:</strong> @request.Street, @request.City, @request.State @request.ZipCode</span>
-                    <span><strong>Submitted:</strong> @request.CreatedAt.LocalDateTime.ToString("MMM d, yyyy h:mm tt")</span>
-                </div>
-                <a href="/request-confirmation/@request.Id" class="btn btn-outline" style="margin-top: 0.5rem;">View Details</a>
-            </div>
-        }
-    </div>
+    @foreach (var request in _requests)
+    {
+        <MudCard Elevation="2" Class="mb-3">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">@request.IssueCategory — @request.UrgencyLevel</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudChip T="string" Color="Color.Success" Size="Size.Small">@request.Status</MudChip>
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText>@request.IssueDescription</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+                    <MudIcon Icon="@Icons.Material.Filled.LocationOn" Size="Size.Small" /> @request.Street, @request.City, @request.State @request.ZipCode
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Small" /> @request.CreatedAt.LocalDateTime.ToString("MMM d, yyyy h:mm tt")
+                </MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="@($"/request-confirmation/{request.Id}")"
+                           StartIcon="@Icons.Material.Filled.Visibility" Size="Size.Small">View Details</MudButton>
+            </MudCardActions>
+        </MudCard>
+    }
 }
 
 @code {

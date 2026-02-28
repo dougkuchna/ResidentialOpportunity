@@ -10,36 +10,36 @@
 
 <PageTitle>Login</PageTitle>
 
-<h1>Login</h1>
-<p>Sign in to view and track your service requests.</p>
+<MudText Typo="Typo.h4" GutterBottom="true">Login</MudText>
+<MudText Typo="Typo.body1" Class="mb-4">Sign in to view and track your service requests.</MudText>
 
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="alert alert-danger">@_errorMessage</div>
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
 }
 
-<form method="post" @formname="LoginForm" @onsubmit="HandleLogin">
-    <AntiforgeryToken />
+<MudPaper Class="pa-4" MaxWidth="400px" Elevation="1">
+    <form method="post" @formname="LoginForm" @onsubmit="HandleLogin">
+        <AntiforgeryToken />
 
-    <fieldset>
-        <legend>Credentials</legend>
-        <div class="form-group">
-            <label for="email">Email</label>
+        <MudText Typo="Typo.h6" GutterBottom="true">Credentials</MudText>
+        <div class="form-group mb-3">
+            <label for="email" class="d-block mb-1"><b>Email</b></label>
             <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
+        <div class="form-group mb-3">
+            <label for="password" class="d-block mb-1"><b>Password</b></label>
             <input id="password" type="password" name="Password" class="form-control" required />
         </div>
-        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+        <div class="form-group mb-4" style="display: flex; align-items: center; gap: 0.5rem;">
             <input id="rememberMe" type="checkbox" name="RememberMe" value="true" />
             <label for="rememberMe">Remember me</label>
         </div>
-    </fieldset>
 
-    <button type="submit" class="btn btn-primary">Login</button>
-    <p style="margin-top: 1rem;">Don't have an account? <a href="/account/register">Register</a></p>
-</form>
+        <button type="submit" class="btn btn-primary">Login</button>
+        <MudText Class="mt-3">Don't have an account? <MudLink Href="/account/register">Register</MudLink></MudText>
+    </form>
+</MudPaper>
 
 @code {
     [SupplyParameterFromForm] private string? Email { get; set; }
