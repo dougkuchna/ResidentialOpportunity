@@ -56,4 +56,22 @@ public class ServiceRequestService
         var entities = await _repository.GetByEmailAsync(email, cancellationToken);
         return entities.Select(e => e.ToDto()).ToList();
     }
+
+    public async Task<int> ClaimRequestsForCustomerAsync(
+        Guid customerId, string email, CancellationToken cancellationToken = default)
+    {
+        var unclaimed = await _repository.GetByEmailAsync(email, cancellationToken);
+        var toClaim = unclaimed.Where(r => r.CustomerId is null).ToList();
+
+        foreach (var request in toClaim)
+        {
+            request.AssignToCustomer(customerId);
+            await _repository.UpdateAsync(request, cancellationToken);
+        }
+
+        if (toClaim.Count > 0)
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return toClaim.Count;
+    }
 }

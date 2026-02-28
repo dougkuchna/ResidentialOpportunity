@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Domain.Entities;
 
 namespace ResidentialOpportunity.Infrastructure.Data;
 
-public class AppDbContext : DbContext, IUnitOfWork
+public class AppDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
 {
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
     public DbSet<HvacProvider> HvacProviders => Set<HvacProvider>();

@@ -1,0 +1,87 @@
+@page "/account/login"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using ResidentialOpportunity.Application.Services
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject ServiceRequestService RequestService
+@inject Infrastructure.Data.AppDbContext DbContext
+@inject NavigationManager Navigation
+
+<PageTitle>Login</PageTitle>
+
+<h1>Login</h1>
+<p>Sign in to view and track your service requests.</p>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<form method="post" @formname="LoginForm" @onsubmit="HandleLogin">
+    <AntiforgeryToken />
+
+    <fieldset>
+        <legend>Credentials</legend>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" name="Password" class="form-control" required />
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+            <input id="rememberMe" type="checkbox" name="RememberMe" value="true" />
+            <label for="rememberMe">Remember me</label>
+        </div>
+    </fieldset>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+    <p style="margin-top: 1rem;">Don't have an account? <a href="/account/register">Register</a></p>
+</form>
+
+@code {
+    [SupplyParameterFromForm] private string? Email { get; set; }
+    [SupplyParameterFromForm] private string? Password { get; set; }
+    [SupplyParameterFromForm] private string? RememberMe { get; set; }
+
+    private string _email = string.Empty;
+    private string? _errorMessage;
+
+    private async Task HandleLogin()
+    {
+        _errorMessage = null;
+        _email = Email ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+        {
+            _errorMessage = "Email and password are required.";
+            return;
+        }
+
+        var result = await SignInManager.PasswordSignInAsync(
+            Email, Password, isPersistent: RememberMe == "true", lockoutOnFailure: false);
+
+        if (!result.Succeeded)
+        {
+            _errorMessage = "Invalid email or password.";
+            return;
+        }
+
+        // Claim any unclaimed requests for this email
+        var user = await UserManager.FindByEmailAsync(Email);
+        if (user is not null)
+        {
+            var customer = await DbContext.Customers
+                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+
+            if (customer is not null)
+            {
+                await RequestService.ClaimRequestsForCustomerAsync(customer.Id, Email);
+            }
+        }
+
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

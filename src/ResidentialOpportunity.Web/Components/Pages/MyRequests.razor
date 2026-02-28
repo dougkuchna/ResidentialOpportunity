@@ -1,0 +1,82 @@
+@page "/my-requests"
+@rendermode InteractiveServer
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using ResidentialOpportunity.Application.DTOs
+@using ResidentialOpportunity.Application.Services
+@inject ServiceRequestService RequestService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Infrastructure.Data.AppDbContext DbContext
+
+<PageTitle>My Requests</PageTitle>
+
+<h1>My Service Requests</h1>
+
+@if (_isLoading)
+{
+    <p>Loading your requests...</p>
+}
+else if (_requests is null || _requests.Count == 0)
+{
+    <div class="alert alert-info">
+        You haven't submitted any service requests yet.
+        <a href="/submit-request">Submit your first request</a>.
+    </div>
+}
+else
+{
+    <p>You have <strong>@_requests.Count</strong> service request(s).</p>
+
+    <div class="requests-list">
+        @foreach (var request in _requests)
+        {
+            <div class="request-card">
+                <div class="request-header">
+                    <h3>@request.IssueCategory — @request.UrgencyLevel</h3>
+                    <span class="status-badge">@request.Status</span>
+                </div>
+                <p class="request-description">@request.IssueDescription</p>
+                <div class="request-meta">
+                    <span><strong>Address:</strong> @request.Street, @request.City, @request.State @request.ZipCode</span>
+                    <span><strong>Submitted:</strong> @request.CreatedAt.LocalDateTime.ToString("MMM d, yyyy h:mm tt")</span>
+                </div>
+                <a href="/request-confirmation/@request.Id" class="btn btn-outline" style="margin-top: 0.5rem;">View Details</a>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ServiceRequestDto>? _requests;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId is not null)
+            {
+                var customer = await DbContext.Customers
+                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+                if (customer is not null)
+                {
+                    var results = await RequestService.GetByCustomerIdAsync(customer.Id);
+                    _requests = results.ToList();
+                }
+            }
+        }
+        catch
+        {
+            _requests = null;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

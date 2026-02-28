@@ -425,3 +425,43 @@ textarea.form-control {
     font-size: 1.15rem;
     color: #555;
 }
+
+/* ===== My Requests ===== */
+.requests-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.request-card {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+
+.request-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.request-header h3 {
+    margin: 0;
+    color: #1a3a5c;
+    font-size: 1.1rem;
+}
+
+.request-description {
+    color: #555;
+    margin: 0.5rem 0;
+}
+
+.request-meta {
+    display: flex;
+    gap: 2rem;
+    font-size: 0.9rem;
+    color: #777;
+}

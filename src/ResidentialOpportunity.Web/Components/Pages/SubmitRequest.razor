@@ -3,10 +3,13 @@
 @using System.Text.Json
 @using System.Xml.Serialization
 @using ResidentialOpportunity.Application.DTOs
+@using Microsoft.EntityFrameworkCore
 @using ResidentialOpportunity.Application.Services
 @using ResidentialOpportunity.Domain.Enums
 @inject ServiceRequestService RequestService
 @inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject Infrastructure.Data.AppDbContext DbContext
 
 <PageTitle>Submit Service Request</PageTitle>
 
@@ -124,6 +127,31 @@
     private bool _isSubmitting;
     private string? _errorMessage;
     private string? _uploadMessage;
+    private Guid? _customerId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId is not null)
+            {
+                var customer = await DbContext.Customers
+                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+
+                if (customer is not null)
+                {
+                    _customerId = customer.Id;
+                    _command.Name = customer.ContactInfo.Name;
+                    _command.Email = customer.ContactInfo.Email;
+                    _command.Phone = customer.ContactInfo.Phone;
+                }
+            }
+        }
+        catch { /* anonymous user, no prefill */ }
+    }
 
     private async Task HandleSubmit()
     {
@@ -132,7 +160,7 @@
 
         try
         {
-            var result = await RequestService.CreateAsync(_command);
+            var result = await RequestService.CreateAsync(_command, _customerId);
             Navigation.NavigateTo($"/request-confirmation/{result.Id}");
         }
         catch (FluentValidation.ValidationException ex)

@@ -2,6 +2,20 @@
 
 All notable changes to the ResidentialOpportunity project are documented here.
 
+## [0.6.0] - 2026-02-28
+
+### Phase 6: Authentication & Account Management
+- Integrated ASP.NET Core Identity with `IdentityDbContext` (shared database)
+- Created Register page (static SSR): email, password, name, phone → creates IdentityUser + Customer entity
+- Created Login page (static SSR): email/password auth with "Remember Me"
+- Created Logout page with confirmation
+- Created MyRequests page (`[Authorize]`): shows authenticated user's service requests
+- Updated NavMenu with `AuthorizeView`: shows My Requests/Sign Out when authenticated, Login/Register when anonymous
+- Updated SubmitRequest to auto-fill contact info and link customerId for authenticated users
+- Added `ClaimRequestsForCustomerAsync` to ServiceRequestService: claims anonymous requests by matching email on register/login
+- Identity registration in Program.cs: password policy (8+ chars, upper/lower/digit), unique email required
+- Cookie auth: 14-day expiry, sliding expiration, HttpOnly
+
 ## [0.5.0] - 2026-02-28
 
 ### Phase 5: Web Layer — API Controllers

@@ -1,0 +1,29 @@
+@page "/account/logout"
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject NavigationManager Navigation
+
+@code {
+    [SupplyParameterFromForm] private string? Confirm { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Confirm == "true")
+        {
+            await SignInManager.SignOutAsync();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+    }
+}
+
+<PageTitle>Logout</PageTitle>
+
+<h1>Sign Out</h1>
+<p>Are you sure you want to sign out?</p>
+
+<form method="post" @formname="LogoutForm">
+    <AntiforgeryToken />
+    <input type="hidden" name="Confirm" value="true" />
+    <button type="submit" class="btn btn-secondary">Sign Out</button>
+    <a href="/" class="btn btn-outline" style="margin-left: 0.5rem;">Cancel</a>
+</form>

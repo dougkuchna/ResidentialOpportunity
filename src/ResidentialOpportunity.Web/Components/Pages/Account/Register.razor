@@ -1,0 +1,120 @@
+@page "/account/register"
+@using Microsoft.AspNetCore.Identity
+@using ResidentialOpportunity.Application.Interfaces
+@using ResidentialOpportunity.Application.Services
+@using ResidentialOpportunity.Domain.Entities
+@using ResidentialOpportunity.Domain.ValueObjects
+@inject UserManager<IdentityUser> UserManager
+@inject SignInManager<IdentityUser> SignInManager
+@inject IUnitOfWork UnitOfWork
+@inject ServiceRequestService RequestService
+@inject NavigationManager Navigation
+@inject Infrastructure.Data.AppDbContext DbContext
+
+<PageTitle>Register</PageTitle>
+
+<h1>Create an Account</h1>
+<p>Register to track your service requests and manage your profile.</p>
+
+@if (_errors.Count > 0)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in _errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<form method="post" @formname="RegisterForm" @onsubmit="HandleRegister">
+    <AntiforgeryToken />
+
+    <fieldset>
+        <legend>Account Credentials</legend>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" name="Password" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input id="confirmPassword" type="password" name="ConfirmPassword" class="form-control" required />
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Contact Information</legend>
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <input id="name" type="text" name="Name" class="form-control" value="@_name" required />
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" name="Phone" class="form-control" value="@_phone" required />
+        </div>
+    </fieldset>
+
+    <button type="submit" class="btn btn-primary">Register</button>
+    <p style="margin-top: 1rem;">Already have an account? <a href="/account/login">Login</a></p>
+</form>
+
+@code {
+    [SupplyParameterFromForm] private string? Email { get; set; }
+    [SupplyParameterFromForm] private string? Password { get; set; }
+    [SupplyParameterFromForm] private string? ConfirmPassword { get; set; }
+    [SupplyParameterFromForm] private string? Name { get; set; }
+    [SupplyParameterFromForm] private string? Phone { get; set; }
+
+    private string _email = string.Empty;
+    private string _name = string.Empty;
+    private string _phone = string.Empty;
+    private List<string> _errors = [];
+
+    private async Task HandleRegister()
+    {
+        _errors.Clear();
+        _email = Email ?? string.Empty;
+        _name = Name ?? string.Empty;
+        _phone = Phone ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password) ||
+            string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Phone))
+        {
+            _errors.Add("All fields are required.");
+            return;
+        }
+
+        if (Password != ConfirmPassword)
+        {
+            _errors.Add("Passwords do not match.");
+            return;
+        }
+
+        var user = new IdentityUser { UserName = Email, Email = Email };
+        var result = await UserManager.CreateAsync(user, Password);
+
+        if (!result.Succeeded)
+        {
+            _errors.AddRange(result.Errors.Select(e => e.Description));
+            return;
+        }
+
+        // Create Customer entity linked to Identity user
+        var contactInfo = new ContactInfo(Name, Email, Phone);
+        var customer = Customer.Create(user.Id, contactInfo);
+        DbContext.Customers.Add(customer);
+        await UnitOfWork.SaveChangesAsync();
+
+        // Claim any anonymous requests matching this email
+        await RequestService.ClaimRequestsForCustomerAsync(customer.Id, Email);
+
+        // Sign in
+        await SignInManager.SignInAsync(user, isPersistent: true);
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

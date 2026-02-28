@@ -41,15 +41,17 @@ ResidentialOpportunity/
 - **Interfaces**: `IServiceRequestRepository`, `IHvacProviderRepository`, `IUnitOfWork`
 
 ### Infrastructure Layer
-- **EF Core**: `AppDbContext` with fluent API configurations, owned entity types for value objects, enum-to-string conversions
+- **EF Core**: `AppDbContext` (extends `IdentityDbContext`) with fluent API configurations, owned entity types for value objects, enum-to-string conversions
+- **Identity**: ASP.NET Core Identity with `IdentityUser`/`IdentityRole` stored in the same database
 - **Repositories**: `ServiceRequestRepository`, `HvacProviderRepository`
 - **Seed Data**: 5 sample HVAC providers across Illinois and Texas for development
 
 ### Web Layer (Blazor Server + API)
-- **Pages**: Home, SubmitRequest (with EditForm + file upload), FindProviders (ZIP search), RequestConfirmation
+- **Pages**: Home, SubmitRequest (with EditForm + file upload), FindProviders (ZIP search), RequestConfirmation, MyRequests (authenticated)
+- **Auth Pages**: Register, Login, Logout (static SSR for cookie auth compatibility)
 - **API Controllers**: `ServiceRequestsController`, `ProvidersController` with JSON/XML content negotiation
-- **Layout**: Sidebar navigation with responsive main content area
-- **Program.cs**: DI registration, XML/JSON formatters, Swagger, database seeding
+- **Layout**: Auth-aware sidebar navigation with `AuthorizeView`
+- **Program.cs**: DI registration, Identity, XML/JSON formatters, Swagger, database seeding
 
 ## Tech Stack
 
@@ -61,6 +63,7 @@ ResidentialOpportunity/
 | Database | SQL Server (LocalDB for development) |
 | Validation | FluentValidation 12.1.1 |
 | API Docs | Swashbuckle.AspNetCore 10.1.4 |
+| Auth | ASP.NET Core Identity (cookie-based) |
 | Testing | xUnit 3.1.4, Moq 4.20.72, EF Core InMemory |
 | Solution Format | .slnx (XML-based, .NET 10+) |
 
@@ -114,11 +117,11 @@ On first run, `SeedData.InitializeAsync()` populates the database with sample HV
 - **Phase 3**: Infrastructure layer — EF Core DbContext, entity configurations, repositories, seed data
 - **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with styling
 - **Phase 5**: API Controllers — `ServiceRequestsController` (POST/GET JSON/XML), `ProvidersController` (GET by ZIP), content negotiation, RFC 7807 error responses
+- **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login/Logout pages, MyRequests page, anonymous-to-authenticated request claiming, auth-aware NavMenu and SubmitRequest
 - **Phase 8**: Testing — 86 tests across domain, application, and infrastructure layers
 
 ### Remaining Phases
 
-- **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login pages, MyRequests page, anonymous-to-authenticated claiming
 - **Phase 7**: Docker & Deployment — Multi-stage Dockerfile, docker-compose with SQL Server, Azure deployment config
 
 ## API Endpoints
