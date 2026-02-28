@@ -1,11 +1,4 @@
 @page "/account/login"
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@using ResidentialOpportunity.Application.Services
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
-@inject ServiceRequestService RequestService
-@inject Infrastructure.Data.AppDbContext DbContext
 @inject NavigationManager Navigation
 
 <PageTitle>Login</PageTitle>
@@ -19,20 +12,18 @@
 }
 
 <MudPaper Class="pa-4" MaxWidth="400px" Elevation="1">
-    <form method="post" @formname="LoginForm" @onsubmit="HandleLogin">
-        <AntiforgeryToken />
-
+    <form method="post" action="/api/account/login" data-enhance="false">
         <MudText Typo="Typo.h6" GutterBottom="true">Credentials</MudText>
         <div class="form-group mb-3">
             <label for="email" class="d-block mb-1"><b>Email</b></label>
-            <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
+            <input id="email" type="email" name="email" class="form-control" required />
         </div>
         <div class="form-group mb-3">
             <label for="password" class="d-block mb-1"><b>Password</b></label>
-            <input id="password" type="password" name="Password" class="form-control" required />
+            <input id="password" type="password" name="password" class="form-control" required />
         </div>
         <div class="form-group mb-4" style="display: flex; align-items: center; gap: 0.5rem;">
-            <input id="rememberMe" type="checkbox" name="RememberMe" value="true" />
+            <input id="rememberMe" type="checkbox" name="rememberMe" value="true" />
             <label for="rememberMe">Remember me</label>
         </div>
 
@@ -42,46 +33,12 @@
 </MudPaper>
 
 @code {
-    [SupplyParameterFromForm] private string? Email { get; set; }
-    [SupplyParameterFromForm] private string? Password { get; set; }
-    [SupplyParameterFromForm] private string? RememberMe { get; set; }
-
-    private string _email = string.Empty;
     private string? _errorMessage;
 
-    private async Task HandleLogin()
+    protected override void OnInitialized()
     {
-        _errorMessage = null;
-        _email = Email ?? string.Empty;
-
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-        {
-            _errorMessage = "Email and password are required.";
-            return;
-        }
-
-        var result = await SignInManager.PasswordSignInAsync(
-            Email, Password, isPersistent: RememberMe == "true", lockoutOnFailure: false);
-
-        if (!result.Succeeded)
-        {
-            _errorMessage = "Invalid email or password.";
-            return;
-        }
-
-        // Claim any unclaimed requests for this email
-        var user = await UserManager.FindByEmailAsync(Email);
-        if (user is not null)
-        {
-            var customer = await DbContext.Customers
-                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
-
-            if (customer is not null)
-            {
-                await RequestService.ClaimRequestsForCustomerAsync(customer.Id, Email);
-            }
-        }
-
-        Navigation.NavigateTo("/", forceLoad: true);
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _errorMessage = query["error"];
     }
 }

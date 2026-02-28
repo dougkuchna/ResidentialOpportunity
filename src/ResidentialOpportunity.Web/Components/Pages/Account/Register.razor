@@ -1,59 +1,40 @@
 @page "/account/register"
-@using Microsoft.AspNetCore.Identity
-@using ResidentialOpportunity.Application.Interfaces
-@using ResidentialOpportunity.Application.Services
-@using ResidentialOpportunity.Domain.Entities
-@using ResidentialOpportunity.Domain.ValueObjects
-@inject UserManager<IdentityUser> UserManager
-@inject SignInManager<IdentityUser> SignInManager
-@inject IUnitOfWork UnitOfWork
-@inject ServiceRequestService RequestService
 @inject NavigationManager Navigation
-@inject Infrastructure.Data.AppDbContext DbContext
 
 <PageTitle>Register</PageTitle>
 
 <MudText Typo="Typo.h4" GutterBottom="true">Create an Account</MudText>
 <MudText Typo="Typo.body1" Class="mb-4">Register to track your service requests and manage your profile.</MudText>
 
-@if (_errors.Count > 0)
+@if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <MudAlert Severity="Severity.Error" Class="mb-4">
-        <ul>
-            @foreach (var error in _errors)
-            {
-                <li>@error</li>
-            }
-        </ul>
-    </MudAlert>
+    <MudAlert Severity="Severity.Error" Class="mb-4">@_errorMessage</MudAlert>
 }
 
 <MudPaper Class="pa-4" MaxWidth="500px" Elevation="1">
-    <form method="post" @formname="RegisterForm" @onsubmit="HandleRegister">
-        <AntiforgeryToken />
-
+    <form method="post" action="/api/account/register" data-enhance="false">
         <MudText Typo="Typo.h6" GutterBottom="true">Account Credentials</MudText>
         <div class="form-group mb-3">
             <label for="email" class="d-block mb-1"><b>Email</b></label>
-            <input id="email" type="email" name="Email" class="form-control" value="@_email" required />
+            <input id="email" type="email" name="email" class="form-control" required />
         </div>
         <div class="form-group mb-3">
             <label for="password" class="d-block mb-1"><b>Password</b></label>
-            <input id="password" type="password" name="Password" class="form-control" required />
+            <input id="password" type="password" name="password" class="form-control" required />
         </div>
         <div class="form-group mb-4">
             <label for="confirmPassword" class="d-block mb-1"><b>Confirm Password</b></label>
-            <input id="confirmPassword" type="password" name="ConfirmPassword" class="form-control" required />
+            <input id="confirmPassword" type="password" name="confirmPassword" class="form-control" required />
         </div>
 
         <MudText Typo="Typo.h6" GutterBottom="true">Contact Information</MudText>
         <div class="form-group mb-3">
             <label for="name" class="d-block mb-1"><b>Full Name</b></label>
-            <input id="name" type="text" name="Name" class="form-control" value="@_name" required />
+            <input id="name" type="text" name="name" class="form-control" required />
         </div>
         <div class="form-group mb-4">
             <label for="phone" class="d-block mb-1"><b>Phone</b></label>
-            <input id="phone" type="tel" name="Phone" class="form-control" value="@_phone" required />
+            <input id="phone" type="tel" name="phone" class="form-control" required />
         </div>
 
         <button type="submit" class="btn btn-primary">Register</button>
@@ -62,57 +43,12 @@
 </MudPaper>
 
 @code {
-    [SupplyParameterFromForm] private string? Email { get; set; }
-    [SupplyParameterFromForm] private string? Password { get; set; }
-    [SupplyParameterFromForm] private string? ConfirmPassword { get; set; }
-    [SupplyParameterFromForm] private string? Name { get; set; }
-    [SupplyParameterFromForm] private string? Phone { get; set; }
+    private string? _errorMessage;
 
-    private string _email = string.Empty;
-    private string _name = string.Empty;
-    private string _phone = string.Empty;
-    private List<string> _errors = [];
-
-    private async Task HandleRegister()
+    protected override void OnInitialized()
     {
-        _errors.Clear();
-        _email = Email ?? string.Empty;
-        _name = Name ?? string.Empty;
-        _phone = Phone ?? string.Empty;
-
-        if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password) ||
-            string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Phone))
-        {
-            _errors.Add("All fields are required.");
-            return;
-        }
-
-        if (Password != ConfirmPassword)
-        {
-            _errors.Add("Passwords do not match.");
-            return;
-        }
-
-        var user = new IdentityUser { UserName = Email, Email = Email };
-        var result = await UserManager.CreateAsync(user, Password);
-
-        if (!result.Succeeded)
-        {
-            _errors.AddRange(result.Errors.Select(e => e.Description));
-            return;
-        }
-
-        // Create Customer entity linked to Identity user
-        var contactInfo = new ContactInfo(Name, Email, Phone);
-        var customer = Customer.Create(user.Id, contactInfo);
-        DbContext.Customers.Add(customer);
-        await UnitOfWork.SaveChangesAsync();
-
-        // Claim any anonymous requests matching this email
-        await RequestService.ClaimRequestsForCustomerAsync(customer.Id, Email);
-
-        // Sign in
-        await SignInManager.SignInAsync(user, isPersistent: true);
-        Navigation.NavigateTo("/", forceLoad: true);
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        _errorMessage = query["error"];
     }
 }

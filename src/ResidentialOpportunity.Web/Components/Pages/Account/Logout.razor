@@ -1,20 +1,4 @@
 @page "/account/logout"
-@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject NavigationManager Navigation
-
-@code {
-    [SupplyParameterFromForm] private string? Confirm { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (Confirm == "true")
-        {
-            await SignInManager.SignOutAsync();
-            Navigation.NavigateTo("/", forceLoad: true);
-        }
-    }
-}
 
 <PageTitle>Logout</PageTitle>
 
@@ -22,9 +6,7 @@
 <MudText Typo="Typo.body1" Class="mb-4">Are you sure you want to sign out?</MudText>
 
 <MudPaper Class="pa-4" MaxWidth="400px" Elevation="1">
-    <form method="post" @formname="LogoutForm">
-        <AntiforgeryToken />
-        <input type="hidden" name="Confirm" value="true" />
+    <form method="post" action="/api/account/logout" data-enhance="false">
         <div class="d-flex gap-3">
             <button type="submit" class="btn btn-secondary">Sign Out</button>
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/">Cancel</MudButton>
