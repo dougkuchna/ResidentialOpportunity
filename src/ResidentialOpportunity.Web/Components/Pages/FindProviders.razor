@@ -1,0 +1,106 @@
+@page "/find-providers"
+@rendermode InteractiveServer
+@using ResidentialOpportunity.Application.DTOs
+@using ResidentialOpportunity.Application.Services
+@inject ProviderLookupService ProviderService
+
+<PageTitle>Find HVAC Providers</PageTitle>
+
+<h1>Find Local HVAC Providers</h1>
+<p>Enter your ZIP code to find qualified HVAC service providers in your area.</p>
+
+<div class="search-section">
+    <div class="search-bar">
+        <input type="text" @bind="_zipCode" @bind:event="oninput" @onkeydown="HandleKeyDown"
+               class="form-control" placeholder="Enter ZIP code (e.g. 62704)" maxlength="5" />
+        <button class="btn btn-primary" @onclick="SearchProviders" disabled="@_isSearching">
+            @if (_isSearching) { <span>Searching...</span> } else { <span>Search</span> }
+        </button>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+@if (_hasSearched && _providers is not null)
+{
+    @if (_providers.Count == 0)
+    {
+        <div class="alert alert-info">
+            No providers found for ZIP code <strong>@_lastSearchedZip</strong>.
+            Try a nearby ZIP code or <a href="/submit-request">submit a request</a> and we'll help match you.
+        </div>
+    }
+    else
+    {
+        <h2>@_providers.Count Provider(s) near @_lastSearchedZip</h2>
+        <div class="provider-grid">
+            @foreach (var provider in _providers)
+            {
+                <div class="provider-card">
+                    <h3>@provider.CompanyName</h3>
+                    <div class="provider-details">
+                        <p><strong>Phone:</strong> @provider.Phone</p>
+                        <p><strong>Email:</strong> <a href="mailto:@provider.Email">@provider.Email</a></p>
+                        @if (!string.IsNullOrEmpty(provider.Website))
+                        {
+                            <p><strong>Website:</strong> <a href="@provider.Website" target="_blank">@provider.Website</a></p>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(provider.Description))
+                    {
+                        <p class="provider-description">@provider.Description</p>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private string _zipCode = string.Empty;
+    private string _lastSearchedZip = string.Empty;
+    private bool _isSearching;
+    private bool _hasSearched;
+    private string? _errorMessage;
+    private List<ProviderSearchResult>? _providers;
+
+    private async Task SearchProviders()
+    {
+        _errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(_zipCode) || _zipCode.Length != 5 || !_zipCode.All(char.IsDigit))
+        {
+            _errorMessage = "Please enter a valid 5-digit ZIP code.";
+            return;
+        }
+
+        _isSearching = true;
+        _lastSearchedZip = _zipCode;
+
+        try
+        {
+            var results = await ProviderService.SearchByZipCodeAsync(_zipCode);
+            _providers = results.ToList();
+            _hasSearched = true;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error searching providers: {ex.Message}";
+        }
+        finally
+        {
+            _isSearching = false;
+        }
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchProviders();
+        }
+    }
+}

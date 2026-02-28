@@ -1,0 +1,199 @@
+@page "/submit-request"
+@rendermode InteractiveServer
+@using System.Text.Json
+@using System.Xml.Serialization
+@using ResidentialOpportunity.Application.DTOs
+@using ResidentialOpportunity.Application.Services
+@using ResidentialOpportunity.Domain.Enums
+@inject ServiceRequestService RequestService
+@inject NavigationManager Navigation
+
+<PageTitle>Submit Service Request</PageTitle>
+
+<h1>Submit a Service Request</h1>
+<p>Fill in the form below or upload a JSON/XML file to pre-fill the fields.</p>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
+<div class="file-upload-section">
+    <label><strong>Import from file (optional):</strong></label>
+    <InputFile OnChange="HandleFileUpload" accept=".json,.xml" />
+    @if (!string.IsNullOrEmpty(_uploadMessage))
+    {
+        <span class="upload-message">@_uploadMessage</span>
+    }
+</div>
+
+<EditForm Model="_command" OnValidSubmit="HandleSubmit" FormName="ServiceRequestForm">
+    <DataAnnotationsValidator />
+
+    <fieldset>
+        <legend>Contact Information *</legend>
+        <div class="form-group">
+            <label for="name">Full Name</label>
+            <InputText id="name" @bind-Value="_command.Name" class="form-control" placeholder="John Doe" />
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <InputText id="email" @bind-Value="_command.Email" class="form-control" placeholder="john@example.com" />
+        </div>
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <InputText id="phone" @bind-Value="_command.Phone" class="form-control" placeholder="555-123-4567" />
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Service Address *</legend>
+        <div class="form-group">
+            <label for="street">Street</label>
+            <InputText id="street" @bind-Value="_command.Street" class="form-control" placeholder="123 Main St" />
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="city">City</label>
+                <InputText id="city" @bind-Value="_command.City" class="form-control" placeholder="Springfield" />
+            </div>
+            <div class="form-group form-group-small">
+                <label for="state">State</label>
+                <InputText id="state" @bind-Value="_command.State" class="form-control" placeholder="IL" maxlength="2" />
+            </div>
+            <div class="form-group form-group-small">
+                <label for="zip">ZIP Code</label>
+                <InputText id="zip" @bind-Value="_command.ZipCode" class="form-control" placeholder="62704" />
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Issue Details *</legend>
+        <div class="form-group">
+            <label for="category">Issue Category</label>
+            <InputSelect id="category" @bind-Value="_command.IssueCategory" class="form-control">
+                @foreach (var cat in Enum.GetValues<IssueCategory>())
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label for="urgency">Urgency Level</label>
+            <InputSelect id="urgency" @bind-Value="_command.UrgencyLevel" class="form-control">
+                @foreach (var level in Enum.GetValues<UrgencyLevel>())
+                {
+                    <option value="@level">@level</option>
+                }
+            </InputSelect>
+        </div>
+        <div class="form-group">
+            <label for="description">Description of Issue</label>
+            <InputTextArea id="description" @bind-Value="_command.IssueDescription" class="form-control" rows="5"
+                placeholder="Describe your HVAC issue in detail..." />
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>Optional Information</legend>
+        <div class="form-group">
+            <label for="equipment">Equipment Details</label>
+            <InputText id="equipment" @bind-Value="_command.EquipmentDetails" class="form-control"
+                placeholder="e.g., Carrier AC unit, Model XYZ, installed 2019" />
+        </div>
+        <div class="form-group">
+            <label for="schedule">Preferred Schedule</label>
+            <InputText id="schedule" @bind-Value="_command.PreferredSchedule" class="form-control"
+                placeholder="e.g., Weekday mornings, ASAP for emergencies" />
+        </div>
+    </fieldset>
+
+    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting">
+        @if (_isSubmitting) { <span>Submitting...</span> } else { <span>Submit Request</span> }
+    </button>
+</EditForm>
+
+@code {
+    private CreateServiceRequestCommand _command = new()
+    {
+        IssueCategory = IssueCategory.Other,
+        UrgencyLevel = UrgencyLevel.Standard
+    };
+
+    private bool _isSubmitting;
+    private string? _errorMessage;
+    private string? _uploadMessage;
+
+    private async Task HandleSubmit()
+    {
+        _isSubmitting = true;
+        _errorMessage = null;
+
+        try
+        {
+            var result = await RequestService.CreateAsync(_command);
+            Navigation.NavigateTo($"/request-confirmation/{result.Id}");
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            _errorMessage = string.Join(" ", ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        _uploadMessage = null;
+        _errorMessage = null;
+
+        try
+        {
+            var file = e.File;
+            if (file.Size > 1024 * 100) // 100KB max
+            {
+                _errorMessage = "File too large. Maximum 100KB.";
+                return;
+            }
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 100);
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            CreateServiceRequestCommand? parsed = null;
+
+            if (file.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                parsed = JsonSerializer.Deserialize<CreateServiceRequestCommand>(content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            else if (file.Name.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+            {
+                var serializer = new XmlSerializer(typeof(CreateServiceRequestCommand));
+                using var stringReader = new StringReader(content);
+                parsed = serializer.Deserialize(stringReader) as CreateServiceRequestCommand;
+            }
+
+            if (parsed is not null)
+            {
+                _command = parsed;
+                _uploadMessage = $"Fields pre-filled from {file.Name}";
+            }
+            else
+            {
+                _errorMessage = "Could not parse file. Ensure it matches the expected format.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error reading file: {ex.Message}";
+        }
+    }
+}

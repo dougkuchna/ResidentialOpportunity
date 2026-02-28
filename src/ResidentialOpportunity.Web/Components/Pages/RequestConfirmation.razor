@@ -1,0 +1,112 @@
+@page "/request-confirmation/{RequestId:guid}"
+@rendermode InteractiveServer
+@using ResidentialOpportunity.Application.DTOs
+@using ResidentialOpportunity.Application.Services
+@inject ServiceRequestService RequestService
+@inject ProviderLookupService ProviderService
+
+<PageTitle>Request Confirmed</PageTitle>
+
+@if (_isLoading)
+{
+    <p>Loading confirmation...</p>
+}
+else if (_request is null)
+{
+    <div class="alert alert-danger">
+        <h2>Request Not Found</h2>
+        <p>We couldn't find a service request with that ID. <a href="/submit-request">Submit a new request</a>.</p>
+    </div>
+}
+else
+{
+    <div class="confirmation-header">
+        <h1>✅ Request Submitted Successfully</h1>
+        <p class="confirmation-id">Reference: <strong>@_request.Id</strong></p>
+    </div>
+
+    <div class="confirmation-summary">
+        <h2>Request Summary</h2>
+        <dl>
+            <dt>Name</dt>
+            <dd>@_request.Name</dd>
+            <dt>Email</dt>
+            <dd>@_request.Email</dd>
+            <dt>Phone</dt>
+            <dd>@_request.Phone</dd>
+            <dt>Address</dt>
+            <dd>@_request.Street, @_request.City, @_request.State @_request.ZipCode</dd>
+            <dt>Category</dt>
+            <dd>@_request.IssueCategory</dd>
+            <dt>Urgency</dt>
+            <dd>@_request.UrgencyLevel</dd>
+            <dt>Description</dt>
+            <dd>@_request.IssueDescription</dd>
+            <dt>Status</dt>
+            <dd><span class="status-badge">@_request.Status</span></dd>
+        </dl>
+    </div>
+
+    @if (_providers is not null && _providers.Count > 0)
+    {
+        <div class="matched-providers">
+            <h2>Matched Providers in Your Area</h2>
+            <p>The following providers service your ZIP code (<strong>@_request.ZipCode</strong>):</p>
+            <div class="provider-grid">
+                @foreach (var provider in _providers)
+                {
+                    <div class="provider-card">
+                        <h3>@provider.CompanyName</h3>
+                        <p><strong>Phone:</strong> @provider.Phone</p>
+                        <p><strong>Email:</strong> <a href="mailto:@provider.Email">@provider.Email</a></p>
+                        @if (!string.IsNullOrEmpty(provider.Website))
+                        {
+                            <p><strong>Website:</strong> <a href="@provider.Website" target="_blank">@provider.Website</a></p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No providers currently listed for your area. We'll follow up once a match is found.
+        </div>
+    }
+
+    <div class="confirmation-actions">
+        <a href="/submit-request" class="btn btn-secondary">Submit Another Request</a>
+        <a href="/find-providers" class="btn btn-outline">Browse All Providers</a>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid RequestId { get; set; }
+
+    private ServiceRequestDto? _request;
+    private List<ProviderSearchResult>? _providers;
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _request = await RequestService.GetByIdAsync(RequestId);
+
+            if (_request is not null && !string.IsNullOrEmpty(_request.ZipCode))
+            {
+                var results = await ProviderService.SearchByZipCodeAsync(_request.ZipCode);
+                _providers = results.ToList();
+            }
+        }
+        catch
+        {
+            _request = null;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

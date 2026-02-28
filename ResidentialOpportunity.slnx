@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ResidentialOpportunity.Application/ResidentialOpportunity.Application.csproj" />
+    <Project Path="src/ResidentialOpportunity.Domain/ResidentialOpportunity.Domain.csproj" />
+    <Project Path="src/ResidentialOpportunity.Infrastructure/ResidentialOpportunity.Infrastructure.csproj" />
+    <Project Path="src/ResidentialOpportunity.Web/ResidentialOpportunity.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ResidentialOpportunity.Application.Tests/ResidentialOpportunity.Application.Tests.csproj" />
+    <Project Path="tests/ResidentialOpportunity.Domain.Tests/ResidentialOpportunity.Domain.Tests.csproj" />
+    <Project Path="tests/ResidentialOpportunity.Infrastructure.Tests/ResidentialOpportunity.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
