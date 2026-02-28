@@ -2,6 +2,15 @@
 
 All notable changes to the ResidentialOpportunity project are documented here.
 
+## [0.5.0] - 2026-02-28
+
+### Phase 5: Web Layer — API Controllers
+- Created `ServiceRequestsController` with POST (create), GET by ID, and GET by email endpoints
+- Created `ProvidersController` with GET by ZIP code endpoint
+- Full JSON and XML content negotiation via `[Produces]` and `[Consumes]` attributes
+- FluentValidation errors returned as RFC 7807 `ValidationProblemDetails`
+- Swagger/OpenAPI documentation for all endpoints
+
 ## [0.4.0] - 2026-02-28
 
 ### Phase 4: Web Layer — Blazor UI

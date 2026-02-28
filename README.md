@@ -45,8 +45,9 @@ ResidentialOpportunity/
 - **Repositories**: `ServiceRequestRepository`, `HvacProviderRepository`
 - **Seed Data**: 5 sample HVAC providers across Illinois and Texas for development
 
-### Web Layer (Blazor Server)
+### Web Layer (Blazor Server + API)
 - **Pages**: Home, SubmitRequest (with EditForm + file upload), FindProviders (ZIP search), RequestConfirmation
+- **API Controllers**: `ServiceRequestsController`, `ProvidersController` with JSON/XML content negotiation
 - **Layout**: Sidebar navigation with responsive main content area
 - **Program.cs**: DI registration, XML/JSON formatters, Swagger, database seeding
 
@@ -112,13 +113,60 @@ On first run, `SeedData.InitializeAsync()` populates the database with sample HV
 - **Phase 2**: Application layer — Interfaces, DTOs, services, FluentValidation validator, mapping extensions
 - **Phase 3**: Infrastructure layer — EF Core DbContext, entity configurations, repositories, seed data
 - **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with styling
+- **Phase 5**: API Controllers — `ServiceRequestsController` (POST/GET JSON/XML), `ProvidersController` (GET by ZIP), content negotiation, RFC 7807 error responses
 - **Phase 8**: Testing — 86 tests across domain, application, and infrastructure layers
 
 ### Remaining Phases
 
-- **Phase 5**: API Controllers — `ServiceRequestsController` (POST JSON/XML), `ProvidersController` (GET by ZIP), content negotiation
 - **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login pages, MyRequests page, anonymous-to-authenticated claiming
 - **Phase 7**: Docker & Deployment — Multi-stage Dockerfile, docker-compose with SQL Server, Azure deployment config
+
+## API Endpoints
+
+All API endpoints support both JSON and XML via `Accept` and `Content-Type` headers. Swagger UI is available at `/swagger` in development.
+
+### Service Requests
+
+- **`POST /api/service-requests`** — Create a new service request
+  - Body: `CreateServiceRequestCommand` (JSON or XML)
+  - Returns: `201 Created` with `ServiceRequestDto` and `Location` header
+  - Errors: `400` with RFC 7807 validation problem details
+
+- **`GET /api/service-requests/{id}`** — Get a service request by ID
+  - Returns: `200` with `ServiceRequestDto` or `404`
+
+- **`GET /api/service-requests?email={email}`** — Lookup requests by email
+  - Returns: `200` with list of `ServiceRequestDto`
+
+### Providers
+
+- **`GET /api/providers?zipCode={zip}`** — Search providers by ZIP code
+  - Returns: `200` with list of `ProviderSearchResult` or `400` if invalid ZIP
+
+### Example: Create a request via curl
+
+```bash
+curl -X POST http://localhost:5239/api/service-requests \
+  -H "Content-Type: application/json" \
+  -d '{
+    "Name": "Jane Doe",
+    "Email": "jane@example.com",
+    "Phone": "555-987-6543",
+    "Street": "456 Oak Ave",
+    "City": "Springfield",
+    "State": "IL",
+    "ZipCode": "62704",
+    "IssueCategory": "Cooling",
+    "UrgencyLevel": "Urgent",
+    "IssueDescription": "AC not cooling"
+  }'
+```
+
+### Example: Search providers
+
+```bash
+curl http://localhost:5239/api/providers?zipCode=62704
+```
 
 ## Sample Data (Seed Providers)
 
