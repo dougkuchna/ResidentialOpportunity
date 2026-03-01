@@ -3,8 +3,11 @@ using ResidentialOpportunity.Domain.Enums;
 
 namespace ResidentialOpportunity.Application.DTOs;
 
+/// <summary>
+/// Command to create a new HVAC service request. Supports JSON and XML deserialization.
+/// </summary>
 [XmlRoot("ServiceRequest")]
-public class CreateServiceRequestCommand
+public record class CreateServiceRequestCommand
 {
     // Contact Info
     public string Name { get; set; } = default!;

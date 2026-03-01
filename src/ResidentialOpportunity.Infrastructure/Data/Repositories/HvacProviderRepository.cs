@@ -10,14 +10,15 @@ public class HvacProviderRepository : IHvacProviderRepository
 
     public HvacProviderRepository(AppDbContext context)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
+        _context = context;
     }
 
     public async Task<HvacProvider?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.HvacProviders
             .Include(p => p.ServiceAreas)
-            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<HvacProvider>> GetByZipCodeAsync(
@@ -27,7 +28,7 @@ public class HvacProviderRepository : IHvacProviderRepository
             .Include(p => p.ServiceAreas)
             .Where(p => p.IsActive && p.ServiceAreas.Any(sa => sa.ZipCode == zipCode))
             .OrderBy(p => p.CompanyName)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyList<HvacProvider>> GetAllActiveAsync(CancellationToken cancellationToken = default)
@@ -36,11 +37,11 @@ public class HvacProviderRepository : IHvacProviderRepository
             .Include(p => p.ServiceAreas)
             .Where(p => p.IsActive)
             .OrderBy(p => p.CompanyName)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task AddAsync(HvacProvider provider, CancellationToken cancellationToken = default)
     {
-        await _context.HvacProviders.AddAsync(provider, cancellationToken);
+        await _context.HvacProviders.AddAsync(provider, cancellationToken).ConfigureAwait(false);
     }
 }

@@ -3,11 +3,11 @@ using System.Xml.Serialization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ResidentialOpportunity.Application.DTOs;
+using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Domain.Enums;
-using ResidentialOpportunity.Infrastructure.Data;
 
 namespace ResidentialOpportunity.Web.Components.Pages;
 
@@ -16,7 +16,8 @@ public partial class SubmitRequest
     [Inject] private ServiceRequestService RequestService { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-    [Inject] private AppDbContext DbContext { get; set; } = default!;
+    [Inject] private ICustomerRepository CustomerRepository { get; set; } = default!;
+    [Inject] private ILogger<SubmitRequest> Logger { get; set; } = default!;
 
     private CreateServiceRequestCommand _command = new()
     {
@@ -38,8 +39,7 @@ public partial class SubmitRequest
 
             if (userId is not null)
             {
-                var customer = await DbContext.Customers
-                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+                var customer = await CustomerRepository.GetByIdentityUserIdAsync(userId);
 
                 if (customer is not null)
                 {
@@ -50,7 +50,10 @@ public partial class SubmitRequest
                 }
             }
         }
-        catch { /* anonymous user, no prefill */ }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Could not prefill form for authenticated user");
+        }
     }
 
     private async Task HandleSubmit()

@@ -1,4 +1,5 @@
 # Agent Rules — ResidentialOpportunity
+@./csharpexpert.agent.md
 
 The agent is allowed to run any and all commands to complete tasks without asking for permission. Document everything, and when finished commit and push. Do not progress beyond the current task scope without further instructions.
 

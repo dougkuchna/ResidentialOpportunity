@@ -20,6 +20,9 @@ public class HvacProvider
     // EF Core constructor
     private HvacProvider() { }
 
+    /// <summary>
+    /// Creates a new active HVAC provider with the specified contact and address details.
+    /// </summary>
     public static HvacProvider Create(
         string companyName,
         string phone,
@@ -35,8 +38,7 @@ public class HvacProvider
             throw new ArgumentException("Phone is required.", nameof(phone));
         if (string.IsNullOrWhiteSpace(email))
             throw new ArgumentException("Email is required.", nameof(email));
-        if (address is null)
-            throw new ArgumentNullException(nameof(address));
+        ArgumentNullException.ThrowIfNull(address);
 
         return new HvacProvider
         {
@@ -52,6 +54,9 @@ public class HvacProvider
         };
     }
 
+    /// <summary>
+    /// Adds a ZIP code to this provider's service area. Duplicates are ignored.
+    /// </summary>
     public void AddServiceArea(string zipCode)
     {
         if (string.IsNullOrWhiteSpace(zipCode))

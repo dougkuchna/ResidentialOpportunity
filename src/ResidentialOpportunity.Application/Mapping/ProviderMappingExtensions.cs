@@ -3,8 +3,14 @@ using ResidentialOpportunity.Domain.Entities;
 
 namespace ResidentialOpportunity.Application.Mapping;
 
+/// <summary>
+/// Maps <see cref="HvacProvider"/> entities to application DTOs.
+/// </summary>
 public static class ProviderMappingExtensions
 {
+    /// <summary>
+    /// Projects a provider entity into a search result DTO.
+    /// </summary>
     public static ProviderSearchResult ToSearchResult(this HvacProvider provider)
     {
         return new ProviderSearchResult

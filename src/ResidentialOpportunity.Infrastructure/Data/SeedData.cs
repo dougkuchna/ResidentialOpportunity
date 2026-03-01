@@ -7,19 +7,22 @@ namespace ResidentialOpportunity.Infrastructure.Data;
 
 public static class SeedData
 {
+    /// <summary>
+    /// Seeds sample HVAC providers if the database is empty.
+    /// </summary>
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        await context.Database.EnsureCreatedAsync();
+        await context.Database.EnsureCreatedAsync().ConfigureAwait(false);
 
-        if (await context.HvacProviders.AnyAsync())
+        if (await context.HvacProviders.AnyAsync().ConfigureAwait(false))
             return; // Already seeded
 
         var providers = CreateSampleProviders();
-        await context.HvacProviders.AddRangeAsync(providers);
-        await context.SaveChangesAsync();
+        await context.HvacProviders.AddRangeAsync(providers).ConfigureAwait(false);
+        await context.SaveChangesAsync().ConfigureAwait(false);
     }
 
     private static List<HvacProvider> CreateSampleProviders()

@@ -4,8 +4,14 @@ using ResidentialOpportunity.Domain.ValueObjects;
 
 namespace ResidentialOpportunity.Application.Mapping;
 
+/// <summary>
+/// Maps between <see cref="ServiceRequest"/> entities and application DTOs.
+/// </summary>
 public static class ServiceRequestMappingExtensions
 {
+    /// <summary>
+    /// Converts a create command into a new domain entity.
+    /// </summary>
     public static ServiceRequest ToDomainEntity(this CreateServiceRequestCommand command, Guid? customerId = null)
     {
         var contactInfo = new ContactInfo(command.Name, command.Email, command.Phone);
@@ -22,6 +28,9 @@ public static class ServiceRequestMappingExtensions
             customerId);
     }
 
+    /// <summary>
+    /// Projects a service request entity into a read-only DTO.
+    /// </summary>
     public static ServiceRequestDto ToDto(this ServiceRequest entity)
     {
         return new ServiceRequestDto

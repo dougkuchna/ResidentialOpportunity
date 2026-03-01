@@ -2,8 +2,11 @@ using System.Xml.Serialization;
 
 namespace ResidentialOpportunity.Application.DTOs;
 
+/// <summary>
+/// Represents an HVAC provider returned from a ZIP code search.
+/// </summary>
 [XmlRoot("Provider")]
-public class ProviderSearchResult
+public record class ProviderSearchResult
 {
     public Guid Id { get; set; }
     public string CompanyName { get; set; } = default!;

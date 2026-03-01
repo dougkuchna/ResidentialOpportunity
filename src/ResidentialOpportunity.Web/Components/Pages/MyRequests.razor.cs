@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ResidentialOpportunity.Application.DTOs;
+using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
-using ResidentialOpportunity.Infrastructure.Data;
 
 namespace ResidentialOpportunity.Web.Components.Pages;
 
@@ -11,7 +11,8 @@ public partial class MyRequests
 {
     [Inject] private ServiceRequestService RequestService { get; set; } = default!;
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-    [Inject] private AppDbContext DbContext { get; set; } = default!;
+    [Inject] private ICustomerRepository CustomerRepository { get; set; } = default!;
+    [Inject] private ILogger<MyRequests> Logger { get; set; } = default!;
 
     private List<ServiceRequestDto>? _requests;
     private bool _isLoading = true;
@@ -25,8 +26,7 @@ public partial class MyRequests
 
             if (userId is not null)
             {
-                var customer = await DbContext.Customers
-                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
+                var customer = await CustomerRepository.GetByIdentityUserIdAsync(userId);
 
                 if (customer is not null)
                 {
@@ -35,8 +35,9 @@ public partial class MyRequests
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load service requests");
             _requests = null;
         }
         finally

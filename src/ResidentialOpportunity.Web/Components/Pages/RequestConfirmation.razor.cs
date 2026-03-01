@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 using ResidentialOpportunity.Application.DTOs;
 using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
@@ -10,6 +11,7 @@ public partial class RequestConfirmation
     [Inject] private ServiceRequestService RequestService { get; set; } = default!;
     [Inject] private ProviderLookupService ProviderService { get; set; } = default!;
     [Inject] private IZipCodeValidationService ZipValidator { get; set; } = default!;
+    [Inject] private ILogger<RequestConfirmation> Logger { get; set; } = default!;
 
     [Parameter] public Guid RequestId { get; set; }
 
@@ -36,8 +38,9 @@ public partial class RequestConfirmation
                 _providers = results.ToList();
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Logger.LogError(ex, "Failed to load request confirmation for {RequestId}", RequestId);
             _request = null;
         }
         finally

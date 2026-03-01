@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Domain.Entities;
 using ResidentialOpportunity.Domain.ValueObjects;
-using ResidentialOpportunity.Infrastructure.Data;
 
 namespace ResidentialOpportunity.Web.Controllers;
 
@@ -16,20 +14,25 @@ public class AccountController : ControllerBase
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly AppDbContext _dbContext;
+    private readonly ICustomerRepository _customerRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ServiceRequestService _requestService;
 
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
-        AppDbContext dbContext,
+        ICustomerRepository customerRepository,
         IUnitOfWork unitOfWork,
         ServiceRequestService requestService)
     {
+        ArgumentNullException.ThrowIfNull(userManager);
+        ArgumentNullException.ThrowIfNull(signInManager);
+        ArgumentNullException.ThrowIfNull(customerRepository);
+        ArgumentNullException.ThrowIfNull(unitOfWork);
+        ArgumentNullException.ThrowIfNull(requestService);
         _userManager = userManager;
         _signInManager = signInManager;
-        _dbContext = dbContext;
+        _customerRepository = customerRepository;
         _unitOfWork = unitOfWork;
         _requestService = requestService;
     }
@@ -53,8 +56,7 @@ public class AccountController : ControllerBase
         var user = await _userManager.FindByEmailAsync(email);
         if (user is not null)
         {
-            var customer = await _dbContext.Customers
-                .FirstOrDefaultAsync(c => c.IdentityUserId == user.Id);
+            var customer = await _customerRepository.GetByIdentityUserIdAsync(user.Id);
 
             if (customer is not null)
                 await _requestService.ClaimRequestsForCustomerAsync(customer.Id, email);
@@ -90,7 +92,7 @@ public class AccountController : ControllerBase
         // Create Customer entity linked to Identity user
         var contactInfo = new ContactInfo(name, email, phone);
         var customer = Customer.Create(user.Id, contactInfo);
-        _dbContext.Customers.Add(customer);
+        await _customerRepository.AddAsync(customer);
         await _unitOfWork.SaveChangesAsync();
 
         // Claim any anonymous requests matching this email

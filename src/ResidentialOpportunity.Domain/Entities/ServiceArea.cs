@@ -12,6 +12,9 @@ public class ServiceArea
     // EF Core constructor
     private ServiceArea() { }
 
+    /// <summary>
+    /// Creates a new service area entry linking a provider to a ZIP code.
+    /// </summary>
     public static ServiceArea Create(Guid providerId, string zipCode)
     {
         if (providerId == Guid.Empty)

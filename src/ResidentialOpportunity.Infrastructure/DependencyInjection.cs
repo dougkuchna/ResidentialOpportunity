@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IHvacProviderRepository, HvacProviderRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
 
         // ZIP code validation (CSV-based, loaded once into memory)
         services.AddSingleton<IZipCodeValidationService, CsvZipCodeValidationService>();

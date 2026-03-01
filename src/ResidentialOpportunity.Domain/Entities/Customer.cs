@@ -13,12 +13,14 @@ public class Customer
     // EF Core constructor
     private Customer() { }
 
+    /// <summary>
+    /// Creates a new customer linked to an ASP.NET Identity user.
+    /// </summary>
     public static Customer Create(string identityUserId, ContactInfo contactInfo, Address? address = null)
     {
         if (string.IsNullOrWhiteSpace(identityUserId))
             throw new ArgumentException("Identity user ID is required.", nameof(identityUserId));
-        if (contactInfo is null)
-            throw new ArgumentNullException(nameof(contactInfo));
+        ArgumentNullException.ThrowIfNull(contactInfo);
 
         return new Customer
         {

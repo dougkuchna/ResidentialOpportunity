@@ -3,8 +3,11 @@ using ResidentialOpportunity.Domain.Enums;
 
 namespace ResidentialOpportunity.Application.DTOs;
 
+/// <summary>
+/// Read-only projection of a service request for API and UI consumers.
+/// </summary>
 [XmlRoot("ServiceRequest")]
-public class ServiceRequestDto
+public record class ServiceRequestDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;

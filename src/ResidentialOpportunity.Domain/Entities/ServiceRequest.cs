@@ -21,6 +21,9 @@ public class ServiceRequest
     // EF Core constructor
     private ServiceRequest() { }
 
+    /// <summary>
+    /// Creates a new service request in <see cref="RequestStatus.Submitted"/> state.
+    /// </summary>
     public static ServiceRequest Create(
         ContactInfo contactInfo,
         Address address,
@@ -31,10 +34,8 @@ public class ServiceRequest
         string? preferredSchedule = null,
         Guid? customerId = null)
     {
-        if (contactInfo is null)
-            throw new ArgumentNullException(nameof(contactInfo));
-        if (address is null)
-            throw new ArgumentNullException(nameof(address));
+        ArgumentNullException.ThrowIfNull(contactInfo);
+        ArgumentNullException.ThrowIfNull(address);
         if (string.IsNullOrWhiteSpace(issueDescription))
             throw new ArgumentException("Issue description is required.", nameof(issueDescription));
         if (issueDescription.Length > 2000)
@@ -58,12 +59,18 @@ public class ServiceRequest
         };
     }
 
+    /// <summary>
+    /// Transitions the request to a new status and updates the timestamp.
+    /// </summary>
     public void UpdateStatus(RequestStatus newStatus)
     {
         Status = newStatus;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Links this request to a registered customer.
+    /// </summary>
     public void AssignToCustomer(Guid customerId)
     {
         CustomerId = customerId;
