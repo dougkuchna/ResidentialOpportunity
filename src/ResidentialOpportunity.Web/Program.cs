@@ -1,6 +1,8 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using MudBlazor.Services;
+using NLog;
+using NLog.Web;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Application.Validators;
 using ResidentialOpportunity.Infrastructure;
@@ -8,6 +10,10 @@ using ResidentialOpportunity.Infrastructure.Data;
 using ResidentialOpportunity.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// NLog: Setup NLog for logging
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
