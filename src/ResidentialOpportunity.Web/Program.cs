@@ -11,8 +11,7 @@ using ResidentialOpportunity.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// NLog: Setup NLog for logging
-builder.Logging.ClearProviders();
+// NLog: Setup NLog for file logging (Warning+)
 builder.Host.UseNLog();
 
 // Add services to the container.
