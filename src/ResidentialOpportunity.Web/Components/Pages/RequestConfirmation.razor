@@ -40,7 +40,7 @@ else
     @if (_providers is not null && _providers.Count > 0)
     {
         <MudText Typo="Typo.h6" GutterBottom="true">Matched Providers in Your Area</MudText>
-        <MudText Class="mb-3">The following providers service ZIP code <b>@_request.ZipCode</b>:</MudText>
+        <MudText Class="mb-3">The following providers service @(_validatedLocation is not null ? $"{_validatedLocation} ({_request.ZipCode})" : $"ZIP code {_request.ZipCode}"):</MudText>
         <MudGrid>
             @foreach (var provider in _providers)
             {

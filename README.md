@@ -9,7 +9,7 @@ A customer-facing portal for residential HVAC service requests that connects hom
 - **Request Confirmation** — Post-submission view with request summary and auto-matched providers in the customer's area.
 - **Dual Format API** — Accepts and returns both JSON and XML via content negotiation (API controllers planned for Phase 5).
 - **Swagger/OpenAPI** — Interactive API documentation at `/swagger`.
-- **Comprehensive Test Suite** — 86 unit and integration tests covering domain, application, and infrastructure layers.
+- **Comprehensive Test Suite** — 99 unit and integration tests covering domain, application, and infrastructure layers.
 
 ## Architecture
 
@@ -119,7 +119,7 @@ On first run, `SeedData.InitializeAsync()` populates the database with sample HV
 - **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with MudBlazor components
 - **Phase 5**: API Controllers — `ServiceRequestsController` (POST/GET JSON/XML), `ProvidersController` (GET by ZIP), content negotiation, RFC 7807 error responses
 - **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login/Logout pages, MyRequests page, anonymous-to-authenticated request claiming, auth-aware NavMenu and SubmitRequest
-- **Phase 8**: Testing — 86 tests across domain, application, and infrastructure layers
+- **Phase 8**: Testing — 99 tests across domain, application, and infrastructure layers
 
 ### Remaining Phases
 

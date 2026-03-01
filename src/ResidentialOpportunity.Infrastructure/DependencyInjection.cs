@@ -22,6 +22,9 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
         services.AddScoped<IHvacProviderRepository, HvacProviderRepository>();
 
+        // ZIP code validation (CSV-based, loaded once into memory)
+        services.AddSingleton<IZipCodeValidationService, CsvZipCodeValidationService>();
+
         return services;
     }
 }
