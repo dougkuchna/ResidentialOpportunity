@@ -1,5 +1,4 @@
 @page "/account/register"
-@inject NavigationManager Navigation
 
 <PageTitle>Register</PageTitle>
 
@@ -41,14 +40,3 @@
         <MudText Class="mt-3">Already have an account? <MudLink Href="/account/login">Login</MudLink></MudText>
     </form>
 </MudPaper>
-
-@code {
-    private string? _errorMessage;
-
-    protected override void OnInitialized()
-    {
-        var uri = new Uri(Navigation.Uri);
-        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        _errorMessage = query["error"];
-    }
-}

@@ -1,12 +1,5 @@
 @page "/my-requests"
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@using ResidentialOpportunity.Application.DTOs
-@using ResidentialOpportunity.Application.Services
-@inject ServiceRequestService RequestService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject Infrastructure.Data.AppDbContext DbContext
 
 <PageTitle>My Requests</PageTitle>
 
@@ -53,39 +46,5 @@ else
                            StartIcon="@Icons.Material.Filled.Visibility" Size="Size.Small">View Details</MudButton>
             </MudCardActions>
         </MudCard>
-    }
-}
-
-@code {
-    private List<ServiceRequestDto>? _requests;
-    private bool _isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            if (userId is not null)
-            {
-                var customer = await DbContext.Customers
-                    .FirstOrDefaultAsync(c => c.IdentityUserId == userId);
-
-                if (customer is not null)
-                {
-                    var results = await RequestService.GetByCustomerIdAsync(customer.Id);
-                    _requests = results.ToList();
-                }
-            }
-        }
-        catch
-        {
-            _requests = null;
-        }
-        finally
-        {
-            _isLoading = false;
-        }
     }
 }

@@ -1,8 +1,4 @@
 @page "/request-confirmation/{RequestId:guid}"
-@using ResidentialOpportunity.Application.DTOs
-@using ResidentialOpportunity.Application.Services
-@inject ServiceRequestService RequestService
-@inject ProviderLookupService ProviderService
 
 <PageTitle>Request Confirmed</PageTitle>
 
@@ -81,34 +77,4 @@ else
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/find-providers"
                    StartIcon="@Icons.Material.Filled.Search">Browse All Providers</MudButton>
     </div>
-}
-
-@code {
-    [Parameter] public Guid RequestId { get; set; }
-
-    private ServiceRequestDto? _request;
-    private List<ProviderSearchResult>? _providers;
-    private bool _isLoading = true;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            _request = await RequestService.GetByIdAsync(RequestId);
-
-            if (_request is not null && !string.IsNullOrEmpty(_request.ZipCode))
-            {
-                var results = await ProviderService.SearchByZipCodeAsync(_request.ZipCode);
-                _providers = results.ToList();
-            }
-        }
-        catch
-        {
-            _request = null;
-        }
-        finally
-        {
-            _isLoading = false;
-        }
-    }
 }
