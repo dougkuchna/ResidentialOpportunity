@@ -13,6 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+// Detailed circuit errors in development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddServerSideBlazor().AddCircuitOptions(o => o.DetailedErrors = true);
+}
+
 // MudBlazor
 builder.Services.AddMudServices();
 
