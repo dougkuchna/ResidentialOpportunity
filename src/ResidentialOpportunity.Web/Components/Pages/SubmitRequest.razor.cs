@@ -18,7 +18,7 @@ public partial class SubmitRequest
     [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
     [Inject] private ICustomerRepository CustomerRepository { get; set; } = default!;
     [Inject] private ILogger<SubmitRequest> Logger { get; set; } = default!;
-    [Parameter] public string? Issue { get; set; }
+       [Parameter][SupplyParameterFromQuery] public string? Issue { get; set; }
 
     private CreateServiceRequestCommand _command = new()
     {
