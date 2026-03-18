@@ -27,7 +27,7 @@ public static class DependencyInjection
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection")));
         services.AddScoped<IWorkCodeRepository, WorkCodeRepository>();
-        services.AddScoped<ILegacyClientService, LegacyClientService>();
+        services.AddScoped<ILegacyService, LegacyService>();
 
         // ZIP code validation (CSV-based, loaded once into memory)
         services.AddSingleton<IZipCodeValidationService, CsvZipCodeValidationService>();

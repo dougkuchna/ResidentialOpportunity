@@ -16,7 +16,7 @@ public class ServiceRequestServiceTests
     private readonly Mock<ICustomerRepository> _customerRepoMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly IValidator<CreateServiceRequestCommand> _validator = new CreateServiceRequestValidator();
-    private readonly Mock<ILegacyClientService> _legacyClientMock = new();
+    private readonly Mock<ILegacyService> _legacyMock = new();
     private readonly ServiceRequestService _service;
 
     public ServiceRequestServiceTests()
@@ -27,7 +27,7 @@ public class ServiceRequestServiceTests
             _customerRepoMock.Object,
             _uowMock.Object,
             _validator,
-            _legacyClientMock.Object);
+            _legacyMock.Object);
     }
 
     private static CreateServiceRequestCommand ValidCommand => new()
@@ -61,10 +61,24 @@ public class ServiceRequestServiceTests
     {
         await _service.CreateAsync(ValidCommand);
 
+        _legacyMock.Verify(l => l.CreateLegacyRecordsAsync(It.IsAny<Customer>(), It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         _customerRepoMock.Verify(r => r.AddAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Once);
         _repoMock.Verify(r => r.AddAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-        _legacyClientMock.Verify(l => l.CreateClientAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WhenLegacyFails_DoesNotSaveLocally()
+    {
+        _legacyMock
+            .Setup(l => l.CreateLegacyRecordsAsync(It.IsAny<Customer>(), It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Legacy DB unavailable"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(ValidCommand));
+
+        _customerRepoMock.Verify(r => r.AddAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Never);
+        _repoMock.Verify(r => r.AddAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Never);
+        _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
