@@ -19,15 +19,6 @@ public class ServiceRequestRepository : IServiceRequestRepository
         return await _context.ServiceRequests.FirstOrDefaultAsync(sr => sr.Id == id, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<ServiceRequest>> GetByCustomerIdAsync(
-        Guid customerId, CancellationToken cancellationToken = default)
-    {
-        return await _context.ServiceRequests
-            .Where(sr => sr.CustomerId == customerId)
-            .OrderByDescending(sr => sr.CreatedAt)
-            .ToListAsync(cancellationToken).ConfigureAwait(false);
-    }
-
     public async Task<IReadOnlyList<ServiceRequest>> GetByEmailAsync(
         string email, CancellationToken cancellationToken = default)
     {
@@ -40,11 +31,5 @@ public class ServiceRequestRepository : IServiceRequestRepository
     public async Task AddAsync(ServiceRequest request, CancellationToken cancellationToken = default)
     {
         await _context.ServiceRequests.AddAsync(request, cancellationToken).ConfigureAwait(false);
-    }
-
-    public Task UpdateAsync(ServiceRequest request, CancellationToken cancellationToken = default)
-    {
-        _context.ServiceRequests.Update(request);
-        return Task.CompletedTask;
     }
 }

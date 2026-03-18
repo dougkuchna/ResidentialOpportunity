@@ -1,20 +1,26 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using MudBlazor;
+using ResidentialOpportunity.Web.Configuration;
 
 namespace ResidentialOpportunity.Web.Components.Layout;
 
 public partial class MainLayout
 {
-    private bool _drawerOpen = true;
+    [Inject] private IOptions<BrandingOptions> BrandingOptionsAccessor { get; set; } = default!;
 
-    private readonly MudTheme _theme = new()
+    private MudTheme _theme = default!;
+
+    protected override void OnInitialized()
     {
-        PaletteLight = new PaletteLight
+        var branding = BrandingOptionsAccessor.Value;
+        _theme = new MudTheme
         {
-            Primary = "#1a3a5c",
-            Secondary = "#2980b9",
-            AppbarBackground = "#1a3a5c"
-        }
-    };
-
-    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+            PaletteLight = new PaletteLight
+            {
+                Primary = branding.PrimaryColor,
+                Secondary = branding.SecondaryColor
+            }
+        };
+    }
 }

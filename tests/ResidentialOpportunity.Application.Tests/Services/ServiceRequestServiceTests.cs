@@ -80,20 +80,6 @@ public class ServiceRequestServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_WithCustomerId_PassesCustomerIdThrough()
-    {
-        var customerId = Guid.NewGuid();
-        ServiceRequest? captured = null;
-        _repoMock.Setup(r => r.AddAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()))
-            .Callback<ServiceRequest, CancellationToken>((sr, _) => captured = sr);
-
-        await _service.CreateAsync(ValidCommand, customerId);
-
-        Assert.NotNull(captured);
-        Assert.Equal(customerId, captured!.CustomerId);
-    }
-
-    [Fact]
     public async Task GetByIdAsync_WhenExists_ReturnsDto()
     {
         var entity = ServiceRequest.Create(

@@ -35,7 +35,6 @@ public class ServiceRequestConfiguration : IEntityTypeConfiguration<ServiceReque
         builder.Property(sr => sr.EquipmentDetails).HasMaxLength(500);
         builder.Property(sr => sr.PreferredSchedule).HasMaxLength(200);
 
-        builder.HasIndex(sr => sr.CustomerId);
         builder.HasIndex(sr => sr.CreatedAt);
     }
 }

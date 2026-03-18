@@ -1,15 +1,17 @@
-# ResidentialOpportunity — HVAC Service Request Portal
+# ResidentialOpportunity — Embeddable HVAC Service Request Form
 
-A customer-facing portal for residential HVAC service requests that connects homeowners with local HVAC providers. Built with **Blazor Server** on **.NET 10** using **Clean Architecture**.
+A standalone residential HVAC service request form designed to be embedded via `<iframe>` on a client's existing website. Built with **Blazor Server** on **.NET 10** using **Clean Architecture** and **MudBlazor**.
 
 ## Features
 
 - **Service Request Submission** — Full form with contact info, address, issue category/urgency, and description. Supports JSON and XML file upload to pre-fill fields.
-- **Provider Lookup** — ZIP code-based search to find local HVAC service providers with contact details.
-- **Request Confirmation** — Post-submission view with request summary and auto-matched providers in the customer's area.
-- **Dual Format API** — Accepts and returns both JSON and XML via content negotiation (API controllers planned for Phase 5).
-- **Swagger/OpenAPI** — Interactive API documentation at `/swagger`.
-- **Comprehensive Test Suite** — 99 unit and integration tests covering domain, application, and infrastructure layers.
+- **Inline Confirmation** — After submission, displays a success message with request summary directly on the form.
+- **Configurable Branding** — Company name, colors, and logo configurable via `appsettings.json` so each client gets their own look.
+- **iframe-Ready** — CORS, `Content-Security-Policy: frame-ancestors`, and `SameSite=None` antiforgery cookies for cross-origin embedding.
+- **REST API** — `POST /api/service-requests` and `GET /api/service-requests/{id}` with JSON/XML content negotiation.
+- **Swagger/OpenAPI** — Interactive API documentation at `/swagger` in development.
+- **ZIP Code Validation** — CSV-based validation using SimpleMaps data (33K+ US ZIP codes).
+- **70 Unit & Integration Tests** — Covering domain, application, and infrastructure layers.
 
 ## Architecture
 
@@ -20,8 +22,8 @@ ResidentialOpportunity/
 ├── src/
 │   ├── ResidentialOpportunity.Domain/          # Entities, Value Objects, Enums
 │   ├── ResidentialOpportunity.Application/     # DTOs, Services, Interfaces, Validators
-│   ├── ResidentialOpportunity.Infrastructure/  # EF Core, Repositories, Seed Data
-│   └── ResidentialOpportunity.Web/             # Blazor Server UI, Program.cs
+│   ├── ResidentialOpportunity.Infrastructure/  # EF Core, Repositories, ZIP Validation
+│   └── ResidentialOpportunity.Web/             # Blazor Server UI, API Controller
 ├── tests/
 │   ├── ResidentialOpportunity.Domain.Tests/
 │   ├── ResidentialOpportunity.Application.Tests/
@@ -30,194 +32,98 @@ ResidentialOpportunity/
 ```
 
 ### Domain Layer
-- **Entities**: `ServiceRequest`, `Customer`, `HvacProvider`, `ServiceArea`
+- **Entities**: `ServiceRequest`
 - **Value Objects**: `ContactInfo`, `Address`
 - **Enums**: `IssueCategory` (Heating, Cooling, Ventilation, Thermostat, AirQuality, Maintenance, Emergency, Other), `UrgencyLevel` (Low, Standard, Urgent, Emergency), `RequestStatus`
 
 ### Application Layer
-- **Services**: `ServiceRequestService`, `ProviderLookupService`
-- **DTOs**: `CreateServiceRequestCommand`, `ServiceRequestDto`, `ProviderSearchResult`
-- **Validation**: FluentValidation with `CreateServiceRequestValidator` enforcing required contact info and issue description
-- **Interfaces**: `IServiceRequestRepository`, `IHvacProviderRepository`, `IUnitOfWork`
+- **Services**: `ServiceRequestService`
+- **DTOs**: `CreateServiceRequestCommand`, `ServiceRequestDto`
+- **Validation**: FluentValidation with `CreateServiceRequestValidator`
+- **Interfaces**: `IServiceRequestRepository`, `IUnitOfWork`, `IZipCodeValidationService`
 
 ### Infrastructure Layer
-- **EF Core**: `AppDbContext` (extends `IdentityDbContext`) with fluent API configurations, owned entity types for value objects, enum-to-string conversions
-- **Identity**: ASP.NET Core Identity with `IdentityUser`/`IdentityRole` stored in the same database
-- **Repositories**: `ServiceRequestRepository`, `HvacProviderRepository`
-- **Seed Data**: 5 sample HVAC providers across Illinois and Texas for development
+- **EF Core**: `AppDbContext` with fluent API configurations, owned entity types for value objects, enum-to-string conversions
+- **Repositories**: `ServiceRequestRepository`
+- **ZIP Validation**: `CsvZipCodeValidationService` — embedded CSV with 33K+ US ZIP codes
 
 ### Web Layer (Blazor Server + API)
-- **Pages**: Home, SubmitRequest (with EditForm + file upload), FindProviders (ZIP search), RequestConfirmation, MyRequests (authenticated)
-- **Auth Pages**: Register, Login, Logout (static SSR for cookie auth compatibility)
-- **API Controllers**: `ServiceRequestsController`, `ProvidersController` with JSON/XML content negotiation
-- **Layout**: MudBlazor `MudLayout` with `MudAppBar`, `MudDrawer` (mini variant), auth-aware `MudNavMenu` with `AuthorizeView`
-- **Program.cs**: DI registration, Identity, XML/JSON formatters, Swagger, database seeding
+- **Pages**: SubmitRequest (root `/`) with inline confirmation
+- **Layout**: Minimal `MudContainer` — no app bar or nav (designed for iframe embedding)
+- **API Controller**: `ServiceRequestsController` with JSON/XML content negotiation
+- **Branding**: `BrandingOptions` bound from `appsettings.json`
+
+## Configuration
+
+### appsettings.json
+
+```json
+{
+  "Branding": {
+    "CompanyName": "Your HVAC Company",
+    "PrimaryColor": "#1a3a5c",
+    "SecondaryColor": "#2980b9",
+    "LogoUrl": "https://example.com/logo.png"
+  },
+  "Iframe": {
+    "FrameAncestors": "https://yourclientsite.com",
+    "AllowedOrigins": ["https://yourclientsite.com"]
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=ResidentialOpportunity;..."
+  }
+}
+```
+
+- **Branding.CompanyName** — Displayed in the form header and page title.
+- **Branding.PrimaryColor / SecondaryColor** — MudBlazor theme colors (hex).
+- **Branding.LogoUrl** — Optional logo displayed above the company name.
+- **Iframe.FrameAncestors** — `Content-Security-Policy: frame-ancestors` value. Use `*` to allow any origin, or a space-separated list of allowed origins.
+- **Iframe.AllowedOrigins** — CORS allowed origins array. Empty array allows any origin.
+
+### Embedding via iframe
+
+```html
+<iframe src="https://your-resop-instance.com/" width="100%" height="800" frameborder="0"></iframe>
+```
 
 ## Tech Stack
 
-| Component | Technology |
-|---|---|
-| Framework | .NET 10 / ASP.NET Core 10 |
-| UI | Blazor Server (Interactive Server rendering) |
-| UI Components | MudBlazor 9.0.0 (Material Design) |
-| ORM | Entity Framework Core 10 |
-| Database | SQL Server (LocalDB for development) |
-| Validation | FluentValidation 12.1.1 |
-| API Docs | Swashbuckle.AspNetCore 10.1.4 |
-| Auth | ASP.NET Core Identity (cookie-based) |
-| Testing | xUnit 3.1.4, Moq 4.20.72, EF Core InMemory |
-| Solution Format | .slnx (XML-based, .NET 10+) |
+- .NET 10 / ASP.NET Core 10
+- Blazor Server (Interactive Server rendering)
+- MudBlazor 9.0.0 (Material Design)
+- Entity Framework Core 10 / SQL Server
+- FluentValidation 12.1.1
+- Swashbuckle.AspNetCore 10.1.4
+- xUnit 3.1.4, Moq 4.20.72
+- NLog (file logging)
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (10.0.100 or later)
-- SQL Server LocalDB (included with Visual Studio) or SQL Server instance
+- SQL Server (LocalDB or SQL Server Express)
 
 ## Getting Started
-
-### Clone and Build
 
 ```bash
 git clone https://github.com/<your-username>/ResidentialOpportunity.git
 cd ResidentialOpportunity
 dotnet build
-```
-
-### Run Tests
-
-```bash
 dotnet test
-```
-
-### Run the Application
-
-```bash
 dotnet run --project src/ResidentialOpportunity.Web
 ```
 
 The app will be available at `https://localhost:5001` (or the port shown in console output).
 
-### Database
-
-The application uses SQL Server LocalDB by default. The connection string is in `src/ResidentialOpportunity.Web/appsettings.json`:
-
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=ResidentialOpportunity;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
-}
-```
-
-On first run, `SeedData.InitializeAsync()` populates the database with sample HVAC providers using `EnsureCreated()`.
-
-## Project Status
-
-### Completed Phases
-
-- **Phase 1**: Project scaffolding — Solution structure, 4 source projects, 3 test projects, project references
-- **Phase 2**: Application layer — Interfaces, DTOs, services, FluentValidation validator, mapping extensions
-- **Phase 3**: Infrastructure layer — EF Core DbContext, entity configurations, repositories, seed data
-- **Phase 4**: Web layer (Blazor UI) — Home, SubmitRequest, FindProviders, RequestConfirmation pages with MudBlazor components
-- **Phase 5**: API Controllers — `ServiceRequestsController` (POST/GET JSON/XML), `ProvidersController` (GET by ZIP), content negotiation, RFC 7807 error responses
-- **Phase 6**: Authentication — ASP.NET Core Identity, Register/Login/Logout pages, MyRequests page, anonymous-to-authenticated request claiming, auth-aware NavMenu and SubmitRequest
-- **Phase 8**: Testing — 99 tests across domain, application, and infrastructure layers
-
-### Remaining Phases
-
-- **Phase 7**: Docker & Deployment — Multi-stage Dockerfile, docker-compose with SQL Server, Azure deployment config
+On first run, the database is created automatically via `EnsureCreatedAsync()`.
 
 ## API Endpoints
 
-All API endpoints support both JSON and XML via `Accept` and `Content-Type` headers. Swagger UI is available at `/swagger` in development.
+All endpoints support JSON and XML via `Accept` and `Content-Type` headers. Swagger UI at `/swagger` in development.
 
-### Service Requests
-
-- **`POST /api/service-requests`** — Create a new service request
-  - Body: `CreateServiceRequestCommand` (JSON or XML)
-  - Returns: `201 Created` with `ServiceRequestDto` and `Location` header
-  - Errors: `400` with RFC 7807 validation problem details
-
-- **`GET /api/service-requests/{id}`** — Get a service request by ID
-  - Returns: `200` with `ServiceRequestDto` or `404`
-
-- **`GET /api/service-requests?email={email}`** — Lookup requests by email
-  - Returns: `200` with list of `ServiceRequestDto`
-
-### Providers
-
-- **`GET /api/providers?zipCode={zip}`** — Search providers by ZIP code
-  - Returns: `200` with list of `ProviderSearchResult` or `400` if invalid ZIP
-
-### Example: Create a request via curl
-
-```bash
-curl -X POST http://localhost:5239/api/service-requests \
-  -H "Content-Type: application/json" \
-  -d '{
-    "Name": "Jane Doe",
-    "Email": "jane@example.com",
-    "Phone": "555-987-6543",
-    "Street": "456 Oak Ave",
-    "City": "Springfield",
-    "State": "IL",
-    "ZipCode": "62704",
-    "IssueCategory": "Cooling",
-    "UrgencyLevel": "Urgent",
-    "IssueDescription": "AC not cooling"
-  }'
-```
-
-### Example: Search providers
-
-```bash
-curl http://localhost:5239/api/providers?zipCode=62704
-```
-
-## Sample Data (Seed Providers)
-
-The seed data includes 5 HVAC providers for development:
-
-1. **Springfield Heating & Cooling** — Springfield, IL (62701-62707)
-2. **Central Illinois HVAC** — Decatur, IL (62521-62526)
-3. **Dallas Comfort Systems** — Dallas, TX (75201-75212)
-4. **Lone Star Air Services** — Austin, TX (73301, 78701-78705)
-5. **Houston Climate Control** — Houston, TX (77001-77010)
-
-## File Upload Format
-
-The Submit Request page accepts JSON or XML files to pre-fill the form. Example:
-
-### JSON
-```json
-{
-  "Name": "Jane Doe",
-  "Email": "jane@example.com",
-  "Phone": "555-987-6543",
-  "Street": "456 Oak Ave",
-  "City": "Springfield",
-  "State": "IL",
-  "ZipCode": "62704",
-  "IssueCategory": "Cooling",
-  "UrgencyLevel": "Urgent",
-  "IssueDescription": "AC unit making loud grinding noise and not cooling"
-}
-```
-
-### XML
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<CreateServiceRequestCommand>
-  <Name>Jane Doe</Name>
-  <Email>jane@example.com</Email>
-  <Phone>555-987-6543</Phone>
-  <Street>456 Oak Ave</Street>
-  <City>Springfield</City>
-  <State>IL</State>
-  <ZipCode>62704</ZipCode>
-  <IssueCategory>Cooling</IssueCategory>
-  <UrgencyLevel>Urgent</UrgencyLevel>
-  <IssueDescription>AC unit making loud grinding noise and not cooling</IssueDescription>
-</CreateServiceRequestCommand>
-```
+- **`POST /api/service-requests`** — Create a new service request. Returns `201 Created` with `ServiceRequestDto`.
+- **`GET /api/service-requests/{id}`** — Get a service request by ID.
+- **`GET /api/service-requests?email={email}`** — Lookup requests by email.
 
 ## License
 

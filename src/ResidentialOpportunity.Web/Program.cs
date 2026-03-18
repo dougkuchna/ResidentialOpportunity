@@ -1,13 +1,12 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 using MudBlazor.Services;
 using NLog;
 using NLog.Web;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Application.Validators;
 using ResidentialOpportunity.Infrastructure;
-using ResidentialOpportunity.Infrastructure.Data;
 using ResidentialOpportunity.Web.Components;
+using ResidentialOpportunity.Web.Configuration;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
@@ -42,41 +41,44 @@ try
     // Infrastructure (EF Core, repositories)
     builder.Services.AddInfrastructure(builder.Configuration);
 
-    // ASP.NET Core Identity
-    builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-    {
-        options.Password.RequireDigit = true;
-        options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = true;
-        options.Password.RequiredLength = 8;
-        options.Password.RequireNonAlphanumeric = false;
-        options.User.RequireUniqueEmail = true;
-    })
-    .AddEntityFrameworkStores<ResidentialOpportunity.Infrastructure.Data.AppDbContext>()
-    .AddDefaultTokenProviders();
-
-    // Cookie auth configuration
-    builder.Services.ConfigureApplicationCookie(options =>
-    {
-        options.LoginPath = "/account/login";
-        options.LogoutPath = "/account/logout";
-        options.AccessDeniedPath = "/account/login";
-        options.Cookie.HttpOnly = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(14);
-        options.SlidingExpiration = true;
-    });
+    // Branding configuration
+    builder.Services.Configure<BrandingOptions>(
+        builder.Configuration.GetSection(BrandingOptions.SectionName));
 
     // Application services
     builder.Services.AddValidatorsFromAssemblyContaining<CreateServiceRequestValidator>();
     builder.Services.AddScoped<ServiceRequestService>();
-    builder.Services.AddScoped<ProviderLookupService>();
 
-    builder.Services.AddCascadingAuthenticationState();
+    // CORS for iframe embedding
+    var allowedOrigins = builder.Configuration.GetSection("Iframe:AllowedOrigins").Get<string[]>() ?? [];
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            if (allowedOrigins.Length > 0)
+                policy.WithOrigins(allowedOrigins);
+            else
+                policy.AllowAnyOrigin();
+
+            policy.AllowAnyHeader().AllowAnyMethod();
+        });
+    });
+
+    // Antiforgery: SameSite=None for cross-origin iframe
+    builder.Services.AddAntiforgery(options =>
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
 
     var app = builder.Build();
 
-    // Seed sample data
-    await SeedData.InitializeAsync(app.Services);
+    // Ensure database is created
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ResidentialOpportunity.Infrastructure.Data.AppDbContext>();
+        await db.Database.EnsureCreatedAsync();
+    }
 
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
@@ -89,11 +91,18 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
     }
-    app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-    app.UseHttpsRedirection();
 
-    app.UseAuthentication();
-    app.UseAuthorization();
+    // iframe embedding headers
+    var frameAncestors = builder.Configuration["Iframe:FrameAncestors"] ?? "*";
+    app.Use(async (context, next) =>
+    {
+        context.Response.Headers["Content-Security-Policy"] = $"frame-ancestors {frameAncestors}";
+        context.Response.Headers.Remove("X-Frame-Options");
+        await next();
+    });
+
+    app.UseHttpsRedirection();
+    app.UseCors();
     app.UseAntiforgery();
 
     app.MapStaticAssets();

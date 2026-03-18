@@ -1,104 +1,140 @@
-@page "/submit-request"
-@page "/submit-request/{Issue?}"
+@page "/"
 
-<PageTitle>Submit Service Request</PageTitle>
+<PageTitle>@_branding.CompanyName — Service Request</PageTitle>
 
-<MudText Typo="Typo.h4" GutterBottom="true">Submit a Service Request</MudText>
-<MudText Typo="Typo.body1" Class="mb-4">Fill in the form below or upload a JSON/XML file to pre-fill the fields.</MudText>
-
-@if (!string.IsNullOrEmpty(_errorMessage))
+@if (!string.IsNullOrEmpty(_branding.LogoUrl))
 {
-    <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="() => _errorMessage = null">@_errorMessage</MudAlert>
+    <div class="d-flex justify-center mb-2">
+        <MudImage Src="@_branding.LogoUrl" Alt="@_branding.CompanyName" Height="48" ObjectFit="ObjectFit.Contain" />
+    </div>
 }
+<MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@_branding.CompanyName</MudText>
+<MudText Typo="Typo.subtitle1" Class="mb-6" Align="Align.Center">Submit a Service Request</MudText>
 
-@if (!string.IsNullOrEmpty(_uploadMessage))
+@if (_submittedRequest is not null)
 {
-    <MudAlert Severity="Severity.Success" Class="mb-4">@_uploadMessage</MudAlert>
-}
-
-<MudPaper Class="pa-4 mb-4" Elevation="1">
-    <MudText Typo="Typo.subtitle2" Class="mb-2">Import from file (optional)</MudText>
-    <InputFile OnChange="HandleFileUpload" accept=".json,.xml" />
-</MudPaper>
-
-<EditForm Model="_command" OnValidSubmit="HandleSubmit" FormName="ServiceRequestForm">
-    <DataAnnotationsValidator />
+    <MudAlert Severity="Severity.Success" Class="mb-4" Icon="@Icons.Material.Filled.CheckCircle">
+        <MudText Typo="Typo.h6">Request Submitted Successfully</MudText>
+        <MudText Typo="Typo.body2">Reference: <b>@_submittedRequest.Id</b></MudText>
+    </MudAlert>
 
     <MudPaper Class="pa-4 mb-4" Elevation="1">
-        <MudText Typo="Typo.h6" GutterBottom="true">Contact Information *</MudText>
-        <MudGrid>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_command.Name" Label="Full Name" Variant="Variant.Outlined" Required="true" />
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_command.Email" Label="Email" InputType="InputType.Email" Variant="Variant.Outlined" Required="true" />
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                <MudTextField @bind-Value="_command.Phone" Label="Phone" Variant="Variant.Outlined" Required="true" />
-            </MudItem>
-        </MudGrid>
+        <MudText Typo="Typo.h6" GutterBottom="true">Request Summary</MudText>
+        <MudSimpleTable Dense="true" Bordered="true">
+            <tbody>
+                <tr><td><b>Name</b></td><td>@_submittedRequest.Name</td></tr>
+                <tr><td><b>Email</b></td><td>@_submittedRequest.Email</td></tr>
+                <tr><td><b>Phone</b></td><td>@_submittedRequest.Phone</td></tr>
+                <tr><td><b>Address</b></td><td>@_submittedRequest.Street, @_submittedRequest.City, @_submittedRequest.State @_submittedRequest.ZipCode</td></tr>
+                <tr><td><b>Category</b></td><td>@_submittedRequest.IssueCategory</td></tr>
+                <tr><td><b>Urgency</b></td><td>@_submittedRequest.UrgencyLevel</td></tr>
+                <tr><td><b>Description</b></td><td>@_submittedRequest.IssueDescription</td></tr>
+                <tr><td><b>Status</b></td><td><MudChip T="string" Color="Color.Success" Size="Size.Small">@_submittedRequest.Status</MudChip></td></tr>
+            </tbody>
+        </MudSimpleTable>
     </MudPaper>
 
-    <MudPaper Class="pa-4 mb-4" Elevation="1">
-        <MudText Typo="Typo.h6" GutterBottom="true">Service Address *</MudText>
-        <MudGrid>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="_command.Street" Label="Street" Variant="Variant.Outlined" Required="true" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_command.City" Label="City" Variant="Variant.Outlined" Required="true" />
-            </MudItem>
-            <MudItem xs="6" sm="3">
-                <MudTextField @bind-Value="_command.State" Label="State" Variant="Variant.Outlined" Required="true" MaxLength="2" />
-            </MudItem>
-            <MudItem xs="6" sm="3">
-                <MudTextField @bind-Value="_command.ZipCode" Label="ZIP Code" Variant="Variant.Outlined" Required="true" MaxLength="5" />
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-
-    <MudPaper Class="pa-4 mb-4" Elevation="1">
-        <MudText Typo="Typo.h6" GutterBottom="true">Issue Details *</MudText>
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="_command.IssueCategory" Label="Issue Category" Variant="Variant.Outlined">
-                    @foreach (var cat in Enum.GetValues<IssueCategory>())
-                    {
-                        <MudSelectItem Value="cat">@cat</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudSelect @bind-Value="_command.UrgencyLevel" Label="Urgency Level" Variant="Variant.Outlined">
-                    @foreach (var level in Enum.GetValues<UrgencyLevel>())
-                    {
-                        <MudSelectItem Value="level">@level</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField @bind-Value="@Issue" Label="Description of Issue" Variant="Variant.Outlined"
-                              Lines="5" Required="true" Placeholder="Describe your HVAC issue in detail..."/>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-
-    <MudPaper Class="pa-4 mb-4" Elevation="1">
-        <MudText Typo="Typo.h6" GutterBottom="true">Optional Information</MudText>
-        <MudGrid>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_command.EquipmentDetails" Label="Equipment Details" Variant="Variant.Outlined"
-                              Placeholder="e.g., Carrier AC unit, Model XYZ, installed 2019" />
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="_command.PreferredSchedule" Label="Preferred Schedule" Variant="Variant.Outlined"
-                              Placeholder="e.g., Weekday mornings, ASAP for emergencies" />
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-
-    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-               Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Send" Size="Size.Large">
-        @(_isSubmitting ? "Submitting..." : "Submit Request")
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ResetForm"
+               StartIcon="@Icons.Material.Filled.Add" Size="Size.Large">
+        Submit Another Request
     </MudButton>
-</EditForm>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Class="mb-4" ShowCloseIcon="true" CloseIconClicked="() => _errorMessage = null">@_errorMessage</MudAlert>
+    }
+
+    @if (!string.IsNullOrEmpty(_uploadMessage))
+    {
+        <MudAlert Severity="Severity.Success" Class="mb-4">@_uploadMessage</MudAlert>
+    }
+
+    <MudPaper Class="pa-4 mb-4" Elevation="1">
+        <MudText Typo="Typo.subtitle2" Class="mb-2">Import from file (optional)</MudText>
+        <InputFile OnChange="HandleFileUpload" accept=".json,.xml" />
+    </MudPaper>
+
+    <EditForm Model="_command" OnValidSubmit="HandleSubmit" FormName="ServiceRequestForm">
+        <DataAnnotationsValidator />
+
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <MudText Typo="Typo.h6" GutterBottom="true">Contact Information *</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_command.Name" Label="Full Name" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_command.Email" Label="Email" InputType="InputType.Email" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_command.Phone" Label="Phone" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <MudText Typo="Typo.h6" GutterBottom="true">Service Address *</MudText>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_command.Street" Label="Street" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_command.City" Label="City" Variant="Variant.Outlined" Required="true" />
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudTextField @bind-Value="_command.State" Label="State" Variant="Variant.Outlined" Required="true" MaxLength="2" />
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudTextField @bind-Value="_command.ZipCode" Label="ZIP Code" Variant="Variant.Outlined" Required="true" MaxLength="5" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <MudText Typo="Typo.h6" GutterBottom="true">Issue Details *</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_command.IssueCategory" Label="Issue Category" Variant="Variant.Outlined">
+                        @foreach (var cat in Enum.GetValues<IssueCategory>())
+                        {
+                            <MudSelectItem Value="cat">@cat</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_command.UrgencyLevel" Label="Urgency Level" Variant="Variant.Outlined">
+                        @foreach (var level in Enum.GetValues<UrgencyLevel>())
+                        {
+                            <MudSelectItem Value="level">@level</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_command.IssueDescription" Label="Description of Issue" Variant="Variant.Outlined"
+                                  Lines="5" Required="true" Placeholder="Describe your HVAC issue in detail..." />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mb-4" Elevation="1">
+            <MudText Typo="Typo.h6" GutterBottom="true">Optional Information</MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_command.EquipmentDetails" Label="Equipment Details" Variant="Variant.Outlined"
+                                  Placeholder="e.g., Carrier AC unit, Model XYZ, installed 2019" />
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_command.PreferredSchedule" Label="Preferred Schedule" Variant="Variant.Outlined"
+                                  Placeholder="e.g., Weekday mornings, ASAP for emergencies" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                   Disabled="_isSubmitting" StartIcon="@Icons.Material.Filled.Send" Size="Size.Large">
+            @(_isSubmitting ? "Submitting..." : "Submit Request")
+        </MudButton>
+    </EditForm>
+}

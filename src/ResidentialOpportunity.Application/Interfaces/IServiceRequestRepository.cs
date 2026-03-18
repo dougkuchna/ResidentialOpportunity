@@ -13,11 +13,6 @@ public interface IServiceRequestRepository
     Task<ServiceRequest?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Returns all service requests owned by the specified customer, newest first.
-    /// </summary>
-    Task<IReadOnlyList<ServiceRequest>> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Returns all service requests matching the given contact email, newest first.
     /// </summary>
     Task<IReadOnlyList<ServiceRequest>> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
@@ -26,9 +21,4 @@ public interface IServiceRequestRepository
     /// Stages a new service request for insertion.
     /// </summary>
     Task AddAsync(ServiceRequest request, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Marks an existing service request as modified.
-    /// </summary>
-    Task UpdateAsync(ServiceRequest request, CancellationToken cancellationToken = default);
 }

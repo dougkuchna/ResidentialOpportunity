@@ -1,25 +1,23 @@
 using System.Text.Json;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ResidentialOpportunity.Application.DTOs;
-using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Domain.Enums;
+using ResidentialOpportunity.Web.Configuration;
 
 namespace ResidentialOpportunity.Web.Components.Pages;
 
 public partial class SubmitRequest
 {
     [Inject] private ServiceRequestService RequestService { get; set; } = default!;
-    [Inject] private NavigationManager Navigation { get; set; } = default!;
-    [Inject] private AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-    [Inject] private ICustomerRepository CustomerRepository { get; set; } = default!;
+    [Inject] private IOptions<BrandingOptions> BrandingOptionsAccessor { get; set; } = default!;
     [Inject] private ILogger<SubmitRequest> Logger { get; set; } = default!;
-       [Parameter][SupplyParameterFromQuery] public string? Issue { get; set; }
 
+    private BrandingOptions _branding = new();
     private CreateServiceRequestCommand _command = new()
     {
         IssueCategory = IssueCategory.Other,
@@ -29,32 +27,11 @@ public partial class SubmitRequest
     private bool _isSubmitting;
     private string? _errorMessage;
     private string? _uploadMessage;
-    private Guid? _customerId;
+    private ServiceRequestDto? _submittedRequest;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        try
-        {
-            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            if (userId is not null)
-            {
-                var customer = await CustomerRepository.GetByIdentityUserIdAsync(userId);
-
-                if (customer is not null)
-                {
-                    _customerId = customer.Id;
-                    _command.Name = customer.ContactInfo.Name;
-                    _command.Email = customer.ContactInfo.Email;
-                    _command.Phone = customer.ContactInfo.Phone;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogWarning(ex, "Could not prefill form for authenticated user");
-        }
+        _branding = BrandingOptionsAccessor.Value;
     }
 
     private async Task HandleSubmit()
@@ -64,8 +41,7 @@ public partial class SubmitRequest
 
         try
         {
-            var result = await RequestService.CreateAsync(_command, _customerId);
-            Navigation.NavigateTo($"/request-confirmation/{result.Id}");
+            _submittedRequest = await RequestService.CreateAsync(_command);
         }
         catch (FluentValidation.ValidationException ex)
         {
@@ -79,6 +55,18 @@ public partial class SubmitRequest
         {
             _isSubmitting = false;
         }
+    }
+
+    private void ResetForm()
+    {
+        _submittedRequest = null;
+        _errorMessage = null;
+        _uploadMessage = null;
+        _command = new CreateServiceRequestCommand
+        {
+            IssueCategory = IssueCategory.Other,
+            UrgencyLevel = UrgencyLevel.Standard
+        };
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)

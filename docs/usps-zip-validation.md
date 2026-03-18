@@ -2,7 +2,7 @@
 
 ## Problem
 
-`ProviderLookupService.SearchByZipCodeAsync` queries the database for HVAC providers whose `ServiceArea` includes the given ZIP code. When a valid ZIP code has no providers, the result is an empty list — indistinguishable from an invalid ZIP code. Users need clear feedback: "no providers in your area" vs "that's not a real ZIP code."
+Service request forms accept a ZIP code as part of the customer's address. The system needs to validate that the ZIP code is a real US ZIP code before accepting the submission, providing clear feedback when an invalid ZIP is entered.
 
 ## Current Solution: CSV-Based Validation (SimpleMaps)
 
@@ -10,11 +10,9 @@ ZIP codes are validated against the [SimpleMaps US ZIP Codes Database](https://s
 
 ### How It Works
 
-1. `FindProviders` and `RequestConfirmation` pages inject `IZipCodeValidationService`
-2. Before searching for providers, the ZIP is validated against the CSV dataset
-3. If valid: displays "Springfield, IL (62704)" and proceeds with provider search
-4. If invalid: shows error message ("ZIP code 99999 was not found")
-5. If valid but no providers: shows "No providers found for 62704 (Springfield, IL)"
+1. The service request form can validate ZIP codes against the CSV dataset
+2. If valid: the city/state can be displayed for confirmation
+3. If invalid: an error message is shown ("ZIP code 99999 was not found")
 
 ### Architecture
 

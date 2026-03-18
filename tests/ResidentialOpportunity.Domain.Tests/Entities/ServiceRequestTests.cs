@@ -21,21 +21,8 @@ public class ServiceRequestTests
         Assert.Equal(IssueCategory.Cooling, request.IssueCategory);
         Assert.Equal(UrgencyLevel.Standard, request.UrgencyLevel);
         Assert.Equal(RequestStatus.Submitted, request.Status);
-        Assert.Null(request.CustomerId);
         Assert.Equal(ValidContact, request.ContactInfo);
         Assert.Equal(ValidAddress, request.Address);
-    }
-
-    [Fact]
-    public void Create_WithCustomerId_SetsCustomerId()
-    {
-        var customerId = Guid.NewGuid();
-        var request = ServiceRequest.Create(
-            ValidContact, ValidAddress, "Furnace won't ignite",
-            IssueCategory.Heating, UrgencyLevel.Emergency,
-            customerId: customerId);
-
-        Assert.Equal(customerId, request.CustomerId);
     }
 
     [Fact]
@@ -96,19 +83,6 @@ public class ServiceRequestTests
 
         Assert.Equal(RequestStatus.Acknowledged, request.Status);
         Assert.True(request.UpdatedAt >= originalUpdatedAt);
-    }
-
-    [Fact]
-    public void AssignToCustomer_SetsCustomerId()
-    {
-        var request = ServiceRequest.Create(
-            ValidContact, ValidAddress, "Issue",
-            IssueCategory.Other, UrgencyLevel.Standard);
-        var customerId = Guid.NewGuid();
-
-        request.AssignToCustomer(customerId);
-
-        Assert.Equal(customerId, request.CustomerId);
     }
 
     [Fact]

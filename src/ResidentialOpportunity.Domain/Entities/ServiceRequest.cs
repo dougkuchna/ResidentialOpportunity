@@ -14,7 +14,6 @@ public class ServiceRequest
     public string? EquipmentDetails { get; private set; }
     public string? PreferredSchedule { get; private set; }
     public RequestStatus Status { get; private set; }
-    public Guid? CustomerId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -31,8 +30,7 @@ public class ServiceRequest
         IssueCategory issueCategory,
         UrgencyLevel urgencyLevel,
         string? equipmentDetails = null,
-        string? preferredSchedule = null,
-        Guid? customerId = null)
+        string? preferredSchedule = null)
     {
         ArgumentNullException.ThrowIfNull(contactInfo);
         ArgumentNullException.ThrowIfNull(address);
@@ -53,7 +51,6 @@ public class ServiceRequest
             EquipmentDetails = equipmentDetails?.Trim(),
             PreferredSchedule = preferredSchedule?.Trim(),
             Status = RequestStatus.Submitted,
-            CustomerId = customerId,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -65,15 +62,6 @@ public class ServiceRequest
     public void UpdateStatus(RequestStatus newStatus)
     {
         Status = newStatus;
-        UpdatedAt = DateTimeOffset.UtcNow;
-    }
-
-    /// <summary>
-    /// Links this request to a registered customer.
-    /// </summary>
-    public void AssignToCustomer(Guid customerId)
-    {
-        CustomerId = customerId;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }
