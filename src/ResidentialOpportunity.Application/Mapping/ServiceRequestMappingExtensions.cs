@@ -12,7 +12,7 @@ public static class ServiceRequestMappingExtensions
     /// <summary>
     /// Converts a create command into a new domain entity.
     /// </summary>
-    public static ServiceRequest ToDomainEntity(this CreateServiceRequestCommand command)
+    public static ServiceRequest ToDomainEntity(this CreateServiceRequestCommand command, Guid? customerId = null)
     {
         var contactInfo = new ContactInfo(command.Name, command.Email, command.Phone);
         var address = new Address(command.Street, command.City, command.State, command.ZipCode);
@@ -24,7 +24,9 @@ public static class ServiceRequestMappingExtensions
             command.IssueCategory,
             command.UrgencyLevel,
             command.EquipmentDetails,
-            command.PreferredSchedule);
+            command.PreferredSchedule,
+            command.WorkCodeCode,
+            customerId);
     }
 
     /// <summary>
@@ -45,6 +47,7 @@ public static class ServiceRequestMappingExtensions
             IssueDescription = entity.IssueDescription,
             IssueCategory = entity.IssueCategory,
             UrgencyLevel = entity.UrgencyLevel,
+            WorkCodeCode = entity.WorkCodeCode,
             EquipmentDetails = entity.EquipmentDetails,
             PreferredSchedule = entity.PreferredSchedule,
             Status = entity.Status,

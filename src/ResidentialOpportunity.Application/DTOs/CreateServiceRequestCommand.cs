@@ -13,6 +13,8 @@ public record class CreateServiceRequestCommand
     public string Name { get; set; } = default!;
     public string Email { get; set; } = default!;
     public string Phone { get; set; } = default!;
+    public string? MobilePhone { get; set; }
+    public PreferredContactMethod PreferredContactMethod { get; set; }
 
     // Address
     public string Street { get; set; } = default!;
@@ -24,6 +26,7 @@ public record class CreateServiceRequestCommand
     public string IssueDescription { get; set; } = default!;
     public IssueCategory IssueCategory { get; set; }
     public UrgencyLevel UrgencyLevel { get; set; }
+    public string? WorkCodeCode { get; set; }
     public string? EquipmentDetails { get; set; }
     public string? PreferredSchedule { get; set; }
 }

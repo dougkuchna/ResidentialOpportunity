@@ -13,14 +13,21 @@ namespace ResidentialOpportunity.Application.Tests.Services;
 public class ServiceRequestServiceTests
 {
     private readonly Mock<IServiceRequestRepository> _repoMock = new();
+    private readonly Mock<ICustomerRepository> _customerRepoMock = new();
     private readonly Mock<IUnitOfWork> _uowMock = new();
     private readonly IValidator<CreateServiceRequestCommand> _validator = new CreateServiceRequestValidator();
+    private readonly Mock<ILegacyClientService> _legacyClientMock = new();
     private readonly ServiceRequestService _service;
 
     public ServiceRequestServiceTests()
     {
         _uowMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        _service = new ServiceRequestService(_repoMock.Object, _uowMock.Object, _validator);
+        _service = new ServiceRequestService(
+            _repoMock.Object,
+            _customerRepoMock.Object,
+            _uowMock.Object,
+            _validator,
+            _legacyClientMock.Object);
     }
 
     private static CreateServiceRequestCommand ValidCommand => new()
@@ -54,8 +61,10 @@ public class ServiceRequestServiceTests
     {
         await _service.CreateAsync(ValidCommand);
 
+        _customerRepoMock.Verify(r => r.AddAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Once);
         _repoMock.Verify(r => r.AddAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Once);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _legacyClientMock.Verify(l => l.CreateClientAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -75,6 +84,7 @@ public class ServiceRequestServiceTests
 
         try { await _service.CreateAsync(cmd); } catch { }
 
+        _customerRepoMock.Verify(r => r.AddAsync(It.IsAny<Customer>(), It.IsAny<CancellationToken>()), Times.Never);
         _repoMock.Verify(r => r.AddAsync(It.IsAny<ServiceRequest>(), It.IsAny<CancellationToken>()), Times.Never);
         _uowMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

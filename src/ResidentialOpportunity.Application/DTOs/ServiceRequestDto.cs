@@ -20,6 +20,7 @@ public record class ServiceRequestDto
     public string IssueDescription { get; set; } = default!;
     public IssueCategory IssueCategory { get; set; }
     public UrgencyLevel UrgencyLevel { get; set; }
+    public string? WorkCodeCode { get; set; }
     public string? EquipmentDetails { get; set; }
     public string? PreferredSchedule { get; set; }
     public RequestStatus Status { get; set; }

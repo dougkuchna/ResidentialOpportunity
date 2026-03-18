@@ -80,6 +80,9 @@ try
         await db.Database.EnsureCreatedAsync();
     }
 
+    // Seed legacy work codes (dbo.wrkcde)
+    await ResidentialOpportunity.Infrastructure.Data.LegacySeedData.InitializeAsync(app.Services);
+
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
     {

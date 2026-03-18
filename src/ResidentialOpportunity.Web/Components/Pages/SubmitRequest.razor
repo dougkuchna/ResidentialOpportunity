@@ -26,6 +26,10 @@
                 <tr><td><b>Email</b></td><td>@_submittedRequest.Email</td></tr>
                 <tr><td><b>Phone</b></td><td>@_submittedRequest.Phone</td></tr>
                 <tr><td><b>Address</b></td><td>@_submittedRequest.Street, @_submittedRequest.City, @_submittedRequest.State @_submittedRequest.ZipCode</td></tr>
+                @if (!string.IsNullOrEmpty(_submittedRequest.WorkCodeCode))
+                {
+                    <tr><td><b>Work Code</b></td><td>@_submittedRequest.WorkCodeCode</td></tr>
+                }
                 <tr><td><b>Category</b></td><td>@_submittedRequest.IssueCategory</td></tr>
                 <tr><td><b>Urgency</b></td><td>@_submittedRequest.UrgencyLevel</td></tr>
                 <tr><td><b>Description</b></td><td>@_submittedRequest.IssueDescription</td></tr>
@@ -71,6 +75,17 @@ else
                 <MudItem xs="12" sm="4">
                     <MudTextField @bind-Value="_command.Phone" Label="Phone" Variant="Variant.Outlined" Required="true" />
                 </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudTextField @bind-Value="_command.MobilePhone" Label="Mobile Phone" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect @bind-Value="_command.PreferredContactMethod" Label="Preferred Contact Method" Variant="Variant.Outlined">
+                        @foreach (var method in Enum.GetValues<PreferredContactMethod>())
+                        {
+                            <MudSelectItem Value="method">@method</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
             </MudGrid>
         </MudPaper>
 
@@ -110,6 +125,13 @@ else
                             <MudSelectItem Value="level">@level</MudSelectItem>
                         }
                     </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudAutocomplete T="WorkCodeDto" Label="Work Code" Variant="Variant.Outlined"
+                                     @bind-Value="SelectedWorkCode"
+                                     SearchFunc="SearchWorkCodes"
+                                     ToStringFunc="@(wc => wc?.ToString() ?? string.Empty)"
+                                     Clearable="true" />
                 </MudItem>
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_command.IssueDescription" Label="Description of Issue" Variant="Variant.Outlined"

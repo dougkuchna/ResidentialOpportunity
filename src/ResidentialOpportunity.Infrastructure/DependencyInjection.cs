@@ -20,6 +20,14 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<AppDbContext>());
         services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+
+        // Legacy database (dbo.wrkcde, dbo.clnt)
+        services.AddDbContext<LegacyDbContext>(options =>
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection")));
+        services.AddScoped<IWorkCodeRepository, WorkCodeRepository>();
+        services.AddScoped<ILegacyClientService, LegacyClientService>();
 
         // ZIP code validation (CSV-based, loaded once into memory)
         services.AddSingleton<IZipCodeValidationService, CsvZipCodeValidationService>();

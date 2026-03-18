@@ -6,29 +6,37 @@ using ResidentialOpportunity.Application.Mapping;
 namespace ResidentialOpportunity.Application.Services;
 
 /// <summary>
-/// Orchestrates creation, retrieval, and customer-claiming of service requests.
+/// Orchestrates creation of service requests and associated customers.
 /// </summary>
 public class ServiceRequestService
 {
     private readonly IServiceRequestRepository _repository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<CreateServiceRequestCommand> _validator;
+    private readonly ILegacyClientService _legacyClientService;
 
     public ServiceRequestService(
         IServiceRequestRepository repository,
+        ICustomerRepository customerRepository,
         IUnitOfWork unitOfWork,
-        IValidator<CreateServiceRequestCommand> validator)
+        IValidator<CreateServiceRequestCommand> validator,
+        ILegacyClientService legacyClientService)
     {
         ArgumentNullException.ThrowIfNull(repository);
+        ArgumentNullException.ThrowIfNull(customerRepository);
         ArgumentNullException.ThrowIfNull(unitOfWork);
         ArgumentNullException.ThrowIfNull(validator);
+        ArgumentNullException.ThrowIfNull(legacyClientService);
         _repository = repository;
+        _customerRepository = customerRepository;
         _unitOfWork = unitOfWork;
         _validator = validator;
+        _legacyClientService = legacyClientService;
     }
 
     /// <summary>
-    /// Validates and persists a new service request, returning the created DTO.
+    /// Validates and persists a new service request + customer, returning the created DTO.
     /// </summary>
     public async Task<ServiceRequestDto> CreateAsync(
         CreateServiceRequestCommand command,
@@ -38,9 +46,24 @@ public class ServiceRequestService
         if (!validationResult.IsValid)
             throw new ValidationException(validationResult.Errors);
 
-        var entity = command.ToDomainEntity();
+        // Create Customer (Residential)
+        var address = new Domain.ValueObjects.Address(command.Street, command.City, command.State, command.ZipCode);
+        var customer = Domain.Entities.Customer.Create(
+            command.Name,
+            command.Email,
+            address,
+            command.MobilePhone ?? command.Phone,
+            command.PreferredContactMethod);
+
+        await _customerRepository.AddAsync(customer, cancellationToken).ConfigureAwait(false);
+
+        // Create ServiceRequest linked to customer
+        var entity = command.ToDomainEntity(customer.Id);
         await _repository.AddAsync(entity, cancellationToken).ConfigureAwait(false);
         await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        // Best-effort legacy client sync
+        await _legacyClientService.CreateClientAsync(customer, cancellationToken).ConfigureAwait(false);
 
         return entity.ToDto();
     }

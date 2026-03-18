@@ -7,6 +7,7 @@ namespace ResidentialOpportunity.Infrastructure.Data;
 public class AppDbContext : DbContext, IUnitOfWork
 {
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+    public DbSet<Customer> Customers => Set<Customer>();
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

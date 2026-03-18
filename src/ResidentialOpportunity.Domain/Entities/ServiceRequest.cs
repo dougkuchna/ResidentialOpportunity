@@ -13,6 +13,8 @@ public class ServiceRequest
     public UrgencyLevel UrgencyLevel { get; private set; }
     public string? EquipmentDetails { get; private set; }
     public string? PreferredSchedule { get; private set; }
+    public string? WorkCodeCode { get; private set; }
+    public Guid? CustomerId { get; private set; }
     public RequestStatus Status { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -30,7 +32,9 @@ public class ServiceRequest
         IssueCategory issueCategory,
         UrgencyLevel urgencyLevel,
         string? equipmentDetails = null,
-        string? preferredSchedule = null)
+        string? preferredSchedule = null,
+        string? workCodeCode = null,
+        Guid? customerId = null)
     {
         ArgumentNullException.ThrowIfNull(contactInfo);
         ArgumentNullException.ThrowIfNull(address);
@@ -50,6 +54,8 @@ public class ServiceRequest
             UrgencyLevel = urgencyLevel,
             EquipmentDetails = equipmentDetails?.Trim(),
             PreferredSchedule = preferredSchedule?.Trim(),
+            WorkCodeCode = workCodeCode?.Trim(),
+            CustomerId = customerId,
             Status = RequestStatus.Submitted,
             CreatedAt = now,
             UpdatedAt = now

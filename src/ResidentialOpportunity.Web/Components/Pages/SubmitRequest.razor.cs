@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ResidentialOpportunity.Application.DTOs;
+using ResidentialOpportunity.Application.Interfaces;
 using ResidentialOpportunity.Application.Services;
 using ResidentialOpportunity.Domain.Enums;
 using ResidentialOpportunity.Web.Configuration;
@@ -14,6 +15,7 @@ namespace ResidentialOpportunity.Web.Components.Pages;
 public partial class SubmitRequest
 {
     [Inject] private ServiceRequestService RequestService { get; set; } = default!;
+    [Inject] private IWorkCodeRepository WorkCodeRepository { get; set; } = default!;
     [Inject] private IOptions<BrandingOptions> BrandingOptionsAccessor { get; set; } = default!;
     [Inject] private ILogger<SubmitRequest> Logger { get; set; } = default!;
 
@@ -28,10 +30,30 @@ public partial class SubmitRequest
     private string? _errorMessage;
     private string? _uploadMessage;
     private ServiceRequestDto? _submittedRequest;
+    private IReadOnlyList<WorkCodeDto> _workCodes = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _branding = BrandingOptionsAccessor.Value;
+
+        try
+        {
+            _workCodes = await WorkCodeRepository.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Failed to load work codes");
+        }
+    }
+
+    private async Task<IEnumerable<WorkCodeDto>> SearchWorkCodes(string? value, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(value))
+            return _workCodes;
+
+        return _workCodes.Where(wc =>
+            wc.Code.Contains(value, StringComparison.OrdinalIgnoreCase) ||
+            wc.Description.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task HandleSubmit()
@@ -62,11 +84,23 @@ public partial class SubmitRequest
         _submittedRequest = null;
         _errorMessage = null;
         _uploadMessage = null;
+        _selectedWorkCode = null;
         _command = new CreateServiceRequestCommand
         {
             IssueCategory = IssueCategory.Other,
             UrgencyLevel = UrgencyLevel.Standard
         };
+    }
+
+    private WorkCodeDto? _selectedWorkCode;
+    private WorkCodeDto? SelectedWorkCode
+    {
+        get => _selectedWorkCode;
+        set
+        {
+            _selectedWorkCode = value;
+            _command.WorkCodeCode = value?.Code;
+        }
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)

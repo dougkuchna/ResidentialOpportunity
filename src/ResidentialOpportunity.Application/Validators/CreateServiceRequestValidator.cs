@@ -47,6 +47,11 @@ public class CreateServiceRequestValidator : AbstractValidator<CreateServiceRequ
         RuleFor(x => x.IssueCategory).IsInEnum();
         RuleFor(x => x.UrgencyLevel).IsInEnum();
 
+        // New fields
+        RuleFor(x => x.MobilePhone).MaximumLength(20);
+        RuleFor(x => x.PreferredContactMethod).IsInEnum();
+        RuleFor(x => x.WorkCodeCode).MaximumLength(20);
+
         // Optional fields
         RuleFor(x => x.EquipmentDetails).MaximumLength(500);
         RuleFor(x => x.PreferredSchedule).MaximumLength(200);
